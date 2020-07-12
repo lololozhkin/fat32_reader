@@ -1,6 +1,6 @@
 import struct
 from ATTR import ATTR
-from EntryType import EntryType
+from FileType import FileType
 
 
 class Entry:
@@ -16,7 +16,7 @@ class Entry:
         self.first_cluster = (high_word << 2) + low_word
 
     def __str__(self):
-        return f"{'long entry' if self.is_long_entry else self.alias_name}"
+        return f"{f'long entry, {self.long_entry_letters}' if self.is_long_entry else self.alias_name}"
 
     def __getitem__(self, item):
         return self.entry.__getitem__(item)
@@ -29,6 +29,10 @@ class Entry:
     def is_long_entry(self):
         return (int(self.attributes) & ATTR.LONG_NAME_MASK) == ATTR.LONG_NAME and \
                int(self.entry[0]) not in (0x00, 0xE5)
+
+    @property
+    def is_short_entry(self):
+        return not self.is_long_entry
 
     @property
     def long_dir_order(self):
@@ -45,19 +49,47 @@ class Entry:
             raise ValueError("long directory entries doesn't have short name")
 
     @property
+    def date(self):
+        return self.entry[24:26]
+
+    @property
+    def time(self):
+        return self.entry[22:24]
+
+    @property
+    def long_entry_letters(self):
+        if self.is_short_entry:
+            raise ValueError("short entries doesn't have such a field")
+
+        name1 = self.entry[1:11]
+        name2 = self.entry[14:26]
+        name3 = self.entry[28:32]
+
+        letters = name1 + name2 + name3
+        letters: bytes
+        return letters.decode(encoding='utf-16')
+
+    @property
     def short_type(self):
-        if not self.is_long_entry:
+        if self.is_short_entry:
             masked_attr = self.attributes & (ATTR.DIRECTORY | ATTR.VOLUME_ID)
             if masked_attr == 0x00:
-                return EntryType.File
+                return FileType.File
             elif masked_attr == ATTR.DIRECTORY:
-                return EntryType.Directory
+                return FileType.Directory
             elif masked_attr == ATTR.VOLUME_ID:
-                return EntryType.Volume
+                return FileType.Volume
             else:
-                return EntryType.Invalid
+                return FileType.Invalid
         else:
             raise ValueError("long directory entries doesn't have short name")
+
+    @property
+    def file_size(self):
+        if self.is_long_entry:
+            raise ValueError("long entries doesn't have such a field")
+
+        return struct.unpack("<I", self.entry[28:32])[0]
 
 
 def main():

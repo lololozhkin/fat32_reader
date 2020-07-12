@@ -1,7 +1,7 @@
 import enum
 
 
-class EntryType(enum.Enum):
+class FileType(enum.Enum):
     Directory = 0
     File = 1
     Volume = 2

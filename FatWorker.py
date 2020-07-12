@@ -1,5 +1,6 @@
 import struct
 from Entry import Entry
+from File import File
 
 
 class FatWorker:
@@ -25,8 +26,6 @@ class FatWorker:
         self.root_cluster = struct.unpack('<I', self.image.read(4))[0]
 
         self.first_data_sector = self.reserved_sectors + (self.num_fats * self.fats_z32)
-
-        self.first_sector_of_root_cluster = self.get_first_sector_of_cluster(self.root_cluster)
 
         self.image.seek(self.first_data_sector * self.bytes_per_sector)
 
@@ -57,9 +56,50 @@ class FatWorker:
         while cur_cluster != FatWorker.EOC:
             for i in range((self.sectors_per_cluster * self.bytes_per_sector) >> 5):
                 entry = self.get_entry_for_dir(cur_cluster, i)
-                if int(entry[0]) in (0x00, 0xE5):
+                if int(entry[0]) == 0x00:
                     break
+                if int(entry[0]) == 0xE5:
+                    continue
                 yield Entry(entry)
 
             cur_cluster = self.get_next_cluster(dir_first_cluster)
 
+    def get_all_files_in_dir(self, dir_first_cluster):
+        yield from FatWorker.get_files_from_entries(
+            self.get_all_entries_of_dir(dir_first_cluster))
+
+    @staticmethod
+    def get_files_from_entries(entries_iterable):
+        for cur_entry in entries_iterable:
+            cur_entry: Entry
+            if cur_entry.is_long_entry:
+                long_entry_parts = [cur_entry]
+                short_entry = None
+                for entry_part in entries_iterable:
+                    entry_part: Entry
+                    if entry_part.is_short_entry:
+                        short_entry = entry_part
+                        break
+                    long_entry_parts.append(entry_part)
+
+                file = File()
+                file.name = FatWorker._generate_long_name(long_entry_parts)
+                file.attributes = short_entry.attributes
+                file.time = short_entry.time
+                file.date = short_entry.date
+                file.first_cluster = short_entry.first_cluster
+                file.file_size = short_entry.file_size
+                file.alias = short_entry.alias_name
+                yield file
+
+    @staticmethod
+    def _generate_long_name(entries: list):
+        name = ''.join(
+            reversed(
+                list(
+                    map(lambda entry: entry.long_entry_letters,
+                        entries)
+                )
+            )
+        )
+        return name
