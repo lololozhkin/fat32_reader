@@ -1,5 +1,11 @@
 from FileType import FileType
 from ATTR import ATTR
+#       b     e
+# 1001000100010001
+
+
+def get_bit_slice_of_word(word, begin, end):
+    return (word << (begin - 1)) >> (15 + begin - end)
 
 
 class File:
@@ -51,6 +57,9 @@ class File:
 
     @property
     def date(self):
+        int_date = int(self._date)
+        day = (int_date << (16 - 4)) >> (16 - 4)
+        month = (int_date << (16 - 8)) >> (16 - 8 + 5)
         return self._date
 
     @date.setter
