@@ -32,7 +32,10 @@ class File:
 
     @property
     def name(self):
-        return self._name.rstrip(chr(0xFFFF))
+        name = self._name.replace(chr(0xFFFF), '')
+        name: str
+        name = name.replace(chr(0), '')
+        return name
 
     @name.setter
     def name(self, new_name):
@@ -108,3 +111,15 @@ class File:
             return FileType.Volume
         else:
             return FileType.Invalid
+
+    @property
+    def is_directory(self):
+        return self.type == FileType.Directory
+
+    @property
+    def is_file(self):
+        return self.type == FileType.File
+
+    @property
+    def is_volume(self):
+        return self.type == FileType.Volume
