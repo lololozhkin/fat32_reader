@@ -50,6 +50,9 @@ class CLI:
                     self._current_directory_cluster = cur_dir_first_cluster
                     break
 
+    def exit(self, params):
+        self._fat_worker.image.close()
+        return False
 
 
 

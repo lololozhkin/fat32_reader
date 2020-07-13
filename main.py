@@ -18,6 +18,7 @@ def main():
         'cd': cli.cd,
         'pwd': cli.pwd,
         'ls': cli.ls,
+        'exit': cli.exit
     }
 
     while True:
@@ -27,7 +28,9 @@ def main():
         util = command.split()[0]
         params = command[len(util) + 1:]
 
-        utils[util](params)
+        res = utils[util](params)
+        if res is False:
+            break
 
     # for file in fat_worker.get_all_files_in_dir(fat_worker.root_cluster):
     #     print(file)
