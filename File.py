@@ -1,11 +1,10 @@
 from FileType import FileType
 from ATTR import ATTR
-#       b     e
-# 1001000100010001
+import struct
 
 
 def get_bit_slice_of_word(word, begin, end):
-    return (word << (begin - 1)) >> (15 + begin - end)
+    return ((word << (15 - end)) & 0xFFFF) >> (15 - end + begin)
 
 
 class File:
@@ -49,7 +48,14 @@ class File:
 
     @property
     def time(self):
-        return self._time
+        int_time = struct.unpack("<H", self._time)[0]
+        seconds = 2 * get_bit_slice_of_word(int_time, 0, 4)
+        minutes = get_bit_slice_of_word(int_time, 5, 10)
+        hours = get_bit_slice_of_word(int_time, 11, 15)
+
+        return f'{str(hours).rjust(2, "0")}:' \
+               f'{str(minutes).rjust(2, "0")}:' \
+               f'{str(seconds).rjust(2, "0")}'
 
     @time.setter
     def time(self, value):
@@ -57,10 +63,11 @@ class File:
 
     @property
     def date(self):
-        int_date = int(self._date)
-        day = (int_date << (16 - 4)) >> (16 - 4)
-        month = (int_date << (16 - 8)) >> (16 - 8 + 5)
-        return self._date
+        int_date = struct.unpack("<H", self._date)[0]
+        day = get_bit_slice_of_word(int_date, 0, 4)
+        month = get_bit_slice_of_word(int_date, 5, 8)
+        year = 1980 + get_bit_slice_of_word(int_date, 9, 15)
+        return f'{str(day).rjust(2, "0")}.{str(month).rjust(2, "0")}.{year}'
 
     @date.setter
     def date(self, value):

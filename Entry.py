@@ -16,7 +16,10 @@ class Entry:
         self.first_cluster = (high_word << 2) + low_word
 
     def __str__(self):
-        return f"{f'long entry, {self.long_entry_letters}' if self.is_long_entry else self.alias_name}"
+        if self.is_long_entry:
+            return f'long entry, {self.long_entry_letters}'
+        else:
+            return self.alias_name
 
     def __getitem__(self, item):
         return self.entry.__getitem__(item)
@@ -27,8 +30,8 @@ class Entry:
 
     @property
     def is_long_entry(self):
-        return (int(self.attributes) & ATTR.LONG_NAME_MASK) == ATTR.LONG_NAME and \
-               int(self.entry[0]) not in (0x00, 0xE5)
+        return ((int(self.attributes) & ATTR.LONG_NAME_MASK) == ATTR.LONG_NAME
+                and int(self.entry[0]) not in (0x00, 0xE5))
 
     @property
     def is_short_entry(self):

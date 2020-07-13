@@ -10,8 +10,7 @@ def main():
     args = parser.parse_args()
     file = args.file
     fat_worker = FatWorker(file)
-    for file in fat_worker.get_all_files_in_dir(fat_worker.root_cluster):
-        print(file)
+    print('/$', end=' ')
 
 
 if __name__ == '__main__':
