@@ -1,6 +1,8 @@
 import argparse
 from FatWorker import FatWorker
 from CLI import CLI
+import colorama
+from colorama import Fore, Style
 
 
 def main():
@@ -22,20 +24,23 @@ def main():
     }
 
     while True:
-        print(f'{cli.current_dir}$:', end=' ')
+        print(f'{Fore.LIGHTCYAN_EX}{cli.current_dir}'
+              f'{Fore.BLUE}${Style.RESET_ALL}:', end=' ')
         command = ' '.join(input().split(' '))
         command = command.replace('\n', '')
         util = command.split()[0]
         params = command[len(util) + 1:]
 
-        res = utils[util](params)
-        if res is False:
-            break
-
+        try:
+            res = utils[util].__call__(params)
+            if res is False:
+                break
+        except KeyError:
+            print()
+            print(f"Command not found '{util}'")
+            print()
     # for file in fat_worker.get_all_files_in_dir(fat_worker.root_cluster):
     #     print(file)
-
-
 
 
 if __name__ == '__main__':

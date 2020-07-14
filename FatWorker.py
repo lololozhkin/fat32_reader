@@ -59,7 +59,7 @@ class FatWorker:
         cur_cluster = dir_first_cluster
         while cur_cluster != FatWorker.EOC:
             for i in range(
-                    (self.sectors_per_cluster * self.bytes_per_sector) // 32):
+                    (self.sectors_per_cluster * self.bytes_per_sector) >> 5):
                 entry = self.get_entry_for_dir(cur_cluster, i)
                 if int(entry[0]) == 0x00:
                     break
