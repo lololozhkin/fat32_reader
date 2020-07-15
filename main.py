@@ -27,7 +27,14 @@ def main():
     while True:
         print(f'{Fore.LIGHTCYAN_EX}{cli.current_dir}'
               f'{Fore.BLUE}${Style.RESET_ALL}:', end=' ')
-        command = ' '.join(input().split(' '))
+        try:
+            command = ' '.join(input().split(' '))
+        except UnicodeDecodeError as e:
+            print(e.__doc__,
+                  e.reason,
+                  e.args[1][e.start:e.end],
+                  f'at position {e.start}.')
+            continue
         command = command.replace('\n', '')
         util = command.split()[0]
         params = command[len(util) + 1:]

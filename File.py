@@ -33,7 +33,6 @@ class File:
     @property
     def name(self):
         name = self._name.replace(chr(0xFFFF), '')
-        name: str
         name = name.replace(chr(0), '')
         return name
 

@@ -2,6 +2,20 @@ from FatWorker import FatWorker
 import os
 import colorama
 from colorama import Fore, Style
+import argparse
+
+
+def normalize_path(path):
+    path = path.split('/')
+    edited_path = []
+    for directory in path:
+        if directory == '.':
+            continue
+        if directory == '..':
+            edited_path.pop(-1)
+        else:
+            edited_path.append(directory)
+    return '/'.join(edited_path)
 
 
 class CLI:
@@ -13,13 +27,41 @@ class CLI:
 
     @property
     def current_dir(self):
-        return ('' if self._current_directory[0] == '/' else '/') \
-               + self._current_directory
+        if self._current_directory.startswith('/'):
+            return self._current_directory
+        else:
+            return f'/{self._current_directory}'
 
     def ls(self, params=None):
+        parser = argparse.ArgumentParser(
+            description='list information about the files '
+                        '(the current directory by default)',
+            usage='ls [OPTIONS] [DIRECTORY]')
+        parser.add_argument('-l',
+                            action='store_true',
+                            help='use a long format')
+
+        parser.add_argument('-a', '--all',
+                            action='store_true',
+                            help='do not ignore hidden files')
+
+        parser.add_argument('path',
+                            metavar='path',
+                            nargs='?',
+                            help='directory, that has to be shown')
+
+        try:
+            args = parser.parse_args(params.split())
+        except SystemExit:
+            return
+
         print()
         for file in self._fat_worker.get_all_files_in_dir(
                 self._current_directory_cluster):
+            if file.name in ('.', '..') and not args.all:
+                continue
+            if args.l:
+                print(file.__str__()[:-len(file.name)], end=' ')
             if file.is_directory:
                 print(Fore.LIGHTMAGENTA_EX + file.name)
             elif file.is_file:
@@ -44,6 +86,7 @@ class CLI:
 
         if params.startswith('./'):
             params = params[2:]
+
         dirs_order = list(filter(lambda x: x != '', params.split('/')))
         cur_dir_index = 0
         cur_dir_first_cluster = self._fat_worker.root_cluster \
@@ -77,6 +120,8 @@ class CLI:
                 else:
                     self._current_directory = os.path.join(self.current_dir,
                                                            params)
+                self._current_directory = normalize_path(
+                    self._current_directory)
                 self._current_directory_cluster = cur_dir_first_cluster
                 break
 
