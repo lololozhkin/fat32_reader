@@ -3,9 +3,6 @@ import os
 import colorama
 from colorama import Fore, Style
 
-#      |     |
-#1010100010010101
-
 
 class CLI:
     def __init__(self, fat_worker: FatWorker):
@@ -66,6 +63,8 @@ class CLI:
                         and file.name == dirs_order[cur_dir_index]):
                     cur_dir_index += 1
                     cur_dir_first_cluster = file.first_cluster
+                    if cur_dir_first_cluster == 0:
+                        cur_dir_first_cluster = self._fat_worker.root_cluster
                     break
             else:
                 print()

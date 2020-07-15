@@ -5,6 +5,8 @@ from File import File
 
 class FatWorker:
     EOC = 0x0FFFFFFF
+    EOF = 0x0FFFFFF8
+    BAD_CLUSTER = 0x0FFFFFF7
     LAST_LONG_ENTRY_MASK = 0x40
 
     def __init__(self, path: str):
@@ -57,7 +59,7 @@ class FatWorker:
 
     def get_all_entries_of_dir(self, dir_first_cluster):
         cur_cluster = dir_first_cluster
-        while cur_cluster != FatWorker.EOC:
+        while cur_cluster != FatWorker.EOC and cur_cluster < FatWorker.EOF:
             for i in range(
                     (self.sectors_per_cluster * self.bytes_per_sector) >> 5):
                 entry = self.get_entry_for_dir(cur_cluster, i)
@@ -77,6 +79,7 @@ class FatWorker:
     def get_files_from_entries(entries_iterable):
         for cur_entry in entries_iterable:
             cur_entry: Entry
+            file = File()
             if cur_entry.is_long_entry:
                 long_entry_parts = [cur_entry]
                 short_entry = None
@@ -87,15 +90,21 @@ class FatWorker:
                         break
                     long_entry_parts.append(entry_part)
 
-                file = File()
                 file.name = FatWorker._generate_long_name(long_entry_parts)
                 file.attributes = short_entry.attributes
-                file.time = short_entry.time
-                file.date = short_entry.date
+                (file.time, file.date) = (short_entry.time, short_entry.date)
                 file.first_cluster = short_entry.first_cluster
                 file.file_size = short_entry.file_size
                 file.alias = short_entry.alias_name
-                yield file
+            else:
+                file.name = file.alias = cur_entry.alias_name
+                file.alias = cur_entry.alias_name
+                file.attributes = cur_entry.attributes
+                (file.time, file.date) = (cur_entry.time, cur_entry.date)
+                file.first_cluster = cur_entry.first_cluster
+                file.file_size = cur_entry.file_size
+
+            yield file
 
     @staticmethod
     def _generate_long_name(entries: list):
