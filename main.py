@@ -25,10 +25,11 @@ def main():
     }
 
     while True:
-        print(f'{Fore.LIGHTCYAN_EX}{cli.current_dir}'
-              f'{Fore.BLUE}${Style.RESET_ALL}:', end=' ')
         try:
-            command = ' '.join(input().split(' '))
+            command = input(f'{Fore.LIGHTCYAN_EX}{cli.current_dir}'
+                            f'{Fore.BLUE}${Style.RESET_ALL}: ')
+
+            command = ' '.join(command.split(' '))
         except UnicodeDecodeError as e:
             print(e.__doc__,
                   e.reason,
@@ -41,14 +42,12 @@ def main():
 
         try:
             res = utils[util].__call__(params)
-            if res is False:
+            if not res:
                 break
         except KeyError:
             print()
             print(f"Command not found '{util}'")
             print()
-    # for file in fat_worker.get_all_files_in_dir(fat_worker.root_cluster):
-    #     print(file)
 
 
 if __name__ == '__main__':

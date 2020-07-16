@@ -53,7 +53,7 @@ class CLI:
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            return
+            return True
 
         print()
         for file in self._fat_worker.get_all_files_in_dir(
@@ -68,13 +68,26 @@ class CLI:
                 print(Fore.BLUE + file.name)
             print(Style.RESET_ALL, end='')
         print()
+        return True
 
     def pwd(self, params=None):
         print()
         print(Fore.LIGHTCYAN_EX + self.current_dir + Style.RESET_ALL)
         print()
+        return True
 
     def cd(self, params=None):
+        parser = argparse.ArgumentParser(
+            description='changes current directory',
+            usage='cd PATH')
+
+        parser.add_argument('path', nargs=1, help='new path')
+        try:
+            args = parser.parse_args(params.split())
+        except SystemExit:
+            return True
+
+        params = args.path[0]
         if params is None:
             params = '/'
 
@@ -83,9 +96,6 @@ class CLI:
 
         if params.count(' ') > 0:
             raise ValueError("Too many parameters")
-
-        if params.startswith('./'):
-            params = params[2:]
 
         dirs_order = list(filter(lambda x: x != '', params.split('/')))
         cur_dir_index = 0
@@ -96,7 +106,7 @@ class CLI:
         if len(dirs_order) == 0:
             self._current_directory = '/'
             self._current_directory_cluster = self._fat_worker.root_cluster
-            return
+            return True
 
         while True:
             files = self._fat_worker.get_all_files_in_dir(
@@ -113,7 +123,7 @@ class CLI:
                 print()
                 print(f"{Fore.RED}No such directory{Style.RESET_ALL} {params}")
                 print()
-                return
+                return True
             if cur_dir_index == len(dirs_order):
                 if params.startswith('/'):
                     self._current_directory = params
@@ -124,6 +134,7 @@ class CLI:
                     self._current_directory)
                 self._current_directory_cluster = cur_dir_first_cluster
                 break
+        return True
 
     def exit(self, params):
         self._fat_worker.image.close()
