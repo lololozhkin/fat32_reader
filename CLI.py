@@ -15,7 +15,10 @@ def normalize_path(path):
             edited_path.pop(-1)
         else:
             edited_path.append(directory)
-    return '/'.join(edited_path)
+    normalized_path = '/'.join(edited_path)
+    if normalized_path.endswith('/'):
+        normalized_path = normalized_path[:-1]
+    return normalized_path
 
 
 class CLI:
@@ -35,8 +38,8 @@ class CLI:
     def ls(self, params=None):
         parser = argparse.ArgumentParser(
             description='list information about the files '
-                        '(the current directory by default)',
-            usage='ls [OPTIONS] [DIRECTORY]')
+                        '(the current directory by default)')
+        # usage='ls [OPTIONS] [DIRECTORY]')
         parser.add_argument('-l',
                             action='store_true',
                             help='use a long format')
@@ -55,9 +58,17 @@ class CLI:
         except SystemExit:
             return True
 
+        cluster = self._current_directory_cluster
+        if args.path is not None:
+            try:
+                _, cluster = self._try_get_first_cluster_and_path(args.path)
+            except ValueError:
+                print(f"\n{Fore.RED}No such a directory "
+                      f"{Style.RESET_ALL}{args.path}\n")
+                return True
+
         print()
-        for file in self._fat_worker.get_all_files_in_dir(
-                self._current_directory_cluster):
+        for file in self._fat_worker.get_all_files_in_dir(cluster):
             if file.name in ('.', '..') and not args.all:
                 continue
             if args.l:

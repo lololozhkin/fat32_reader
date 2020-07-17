@@ -25,10 +25,10 @@ class File:
 
     def __str__(self):
         return f"{self.type.name[0].lower()} " \
-               f"{bin(self.attributes)[2:].rjust(8, '0')} " \
                f"{self.date} {self.time} " \
                f"{self.file_size}b " \
                f"{self.name}"
+        # f"{bin(self.attributes)[2:].rjust(8, '0')} "
 
     @property
     def name(self):
