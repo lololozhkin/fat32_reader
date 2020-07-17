@@ -63,50 +63,55 @@ class CLI:
             if args.l:
                 print(file.__str__()[:-len(file.name)], end=' ')
             if file.is_directory:
-                print(Fore.LIGHTMAGENTA_EX + file.name)
-            elif file.is_file:
                 print(Fore.BLUE + file.name)
+            elif file.is_file:
+                print(Fore.LIGHTYELLOW_EX + file.name)
             print(Style.RESET_ALL, end='')
         print()
         return True
 
-    def pwd(self, params=None):
+    def pwd(self):
         print()
         print(Fore.LIGHTCYAN_EX + self.current_dir + Style.RESET_ALL)
         print()
         return True
 
-    def cd(self, params=None):
+    def cd(self, args=None):
         parser = argparse.ArgumentParser(
             description='changes current directory',
             usage='cd PATH')
 
-        parser.add_argument('path', nargs=1, help='new path')
+        parser.add_argument('path', default='/', help='new path')
         try:
-            args = parser.parse_args(params.split())
+            args = parser.parse_args(args.split())
         except SystemExit:
             return True
 
-        params = args.path[0]
-        if params is None:
-            params = '/'
+        args = args.path
+        try:
+            path, cluster = self._try_get_first_cluster_and_path(args)
+            self._current_directory = path
+            self._current_directory_cluster = cluster
+        except ValueError:
+            print(f"\n{Fore.RED}No such a directory {Style.RESET_ALL}{args}\n")
+        return True
 
-        if not isinstance(params, str):
-            raise TypeError("parameters have to be in string form")
+    def exit(self, params):
+        self._fat_worker.image.close()
+        return False
 
-        if params.count(' ') > 0:
-            raise ValueError("Too many parameters")
+    def tree(self, params=None):
+        pass
 
-        dirs_order = list(filter(lambda x: x != '', params.split('/')))
+    def _try_get_first_cluster_and_path(self, path):
+        dirs_order = list(filter(lambda x: x != '', path.split('/')))
         cur_dir_index = 0
         cur_dir_first_cluster = self._fat_worker.root_cluster \
-            if params.startswith('/') \
+            if path.startswith('/') \
             else self._current_directory_cluster
 
         if len(dirs_order) == 0:
-            self._current_directory = '/'
-            self._current_directory_cluster = self._fat_worker.root_cluster
-            return True
+            return '/', self._fat_worker.root_cluster
 
         while True:
             files = self._fat_worker.get_all_files_in_dir(
@@ -120,25 +125,12 @@ class CLI:
                         cur_dir_first_cluster = self._fat_worker.root_cluster
                     break
             else:
-                print()
-                print(f"{Fore.RED}No such directory{Style.RESET_ALL} {params}")
-                print()
-                return True
+                raise ValueError("No such a directory")
+
             if cur_dir_index == len(dirs_order):
-                if params.startswith('/'):
-                    self._current_directory = params
+                if path.startswith('/'):
+                    cur_dir = path
                 else:
-                    self._current_directory = os.path.join(self.current_dir,
-                                                           params)
-                self._current_directory = normalize_path(
-                    self._current_directory)
-                self._current_directory_cluster = cur_dir_first_cluster
-                break
-        return True
-
-    def exit(self, params):
-        self._fat_worker.image.close()
-        return False
-
-    def tree(self, params=None):
-        pass
+                    cur_dir = os.path.join(self.current_dir, path)
+                cur_dir = normalize_path(cur_dir)
+                return cur_dir, cur_dir_first_cluster

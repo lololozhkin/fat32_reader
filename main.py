@@ -46,7 +46,7 @@ def main():
                 break
         except KeyError:
             print()
-            print(f"Command not found '{util}'")
+            print(f"C{Fore.RED}Command not found '{util}'{Style.RESET_ALL}")
             print()
 
 
