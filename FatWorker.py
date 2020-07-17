@@ -106,6 +106,18 @@ class FatWorker:
 
             yield file
 
+    def get_all_sectors_of_file(self, first_cluster):
+        cur_cluster = first_cluster
+        while True:
+            first_sector = self.get_first_sector_of_cluster(cur_cluster)
+            for i in range(self.sectors_per_cluster):
+                self.image.seek((first_sector + i) * self.bytes_per_sector)
+                yield self.image.read(self.bytes_per_sector)
+
+            cur_cluster = self.get_next_cluster(cur_cluster)
+            if cur_cluster == self.EOC or cur_cluster >= self.EOF:
+                break
+
     @staticmethod
     def _generate_long_name(entries: list):
         name = ''.join(

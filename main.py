@@ -21,7 +21,8 @@ def main():
         'cd': cli.cd,
         'pwd': cli.pwd,
         'ls': cli.ls,
-        'exit': cli.exit
+        'exit': cli.exit,
+        'export': cli.export
     }
 
     while True:
@@ -46,7 +47,7 @@ def main():
                 break
         except KeyError:
             print()
-            print(f"C{Fore.RED}Command not found '{util}'{Style.RESET_ALL}")
+            print(f"{Fore.RED}Command not found '{util}'{Style.RESET_ALL}")
             print()
 
 

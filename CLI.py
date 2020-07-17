@@ -37,9 +37,10 @@ class CLI:
 
     def ls(self, params=None):
         parser = argparse.ArgumentParser(
+            prog='ls',
             description='list information about the files '
-                        '(the current directory by default)')
-        # usage='ls [OPTIONS] [DIRECTORY]')
+                        '(the current directory by default)'
+        )
         parser.add_argument('-l',
                             action='store_true',
                             help='use a long format')
@@ -81,16 +82,15 @@ class CLI:
         print()
         return True
 
-    def pwd(self):
-        print()
-        print(Fore.LIGHTCYAN_EX + self.current_dir + Style.RESET_ALL)
-        print()
+    def pwd(self, args=None):
+        print(f'\n{Fore.LIGHTCYAN_EX}{self.current_dir}{Style.RESET_ALL}\n')
         return True
 
     def cd(self, args=None):
         parser = argparse.ArgumentParser(
+            prog='cd',
             description='changes current directory',
-            usage='cd PATH')
+        )
 
         parser.add_argument('path', default='/', help='new path')
         try:
@@ -107,14 +107,56 @@ class CLI:
             print(f"\n{Fore.RED}No such a directory {Style.RESET_ALL}{args}\n")
         return True
 
-    def exit(self, params):
+    def exit(self, params=None):
         self._fat_worker.image.close()
         return False
+
+    def export(self, params=None):
+        parser = argparse.ArgumentParser(
+            prog='export',
+            description='exports file from the image to a disk'
+        )
+        parser.add_argument('img_path',
+                            type=str,
+                            help='path in the image of disk'
+                            )
+        parser.add_argument('disk_path',
+                            type=str,
+                            help='path of the file in your computer'
+                                 ' to copy data from image to it'
+                            )
+        try:
+            args = parser.parse_args(params.split())
+        except SystemExit:
+            return True
+
+        (disk_path, img_path) = (normalize_path(path)
+                                 for path in (args.disk_path, args.img_path))
+        try:
+            _, file_cluster = self._try_get_first_cluster_and_path(img_path,
+                                                                   True)
+        except ValueError:
+            print(f"\n{Fore.RED}No such a file on disk image "
+                  f"{Style.RESET_ALL}{img_path}\n")
+            return True
+
+        try:
+            with open(disk_path, 'wb') as f:
+                for sector in self._fat_worker.get_all_sectors_of_file(
+                        file_cluster):
+                    f.write(sector)
+        except FileNotFoundError:
+            print(f"\n{Fore.RED}No such file on your computer "
+                  f"{Style.RESET_ALL}{disk_path}\n")
+        except PermissionError:
+            print(f"\n{Fore.RED}Permission error for file "
+                  f"{Style.RESET_ALL}{disk_path}\n")
+        return True
 
     def tree(self, params=None):
         pass
 
-    def _try_get_first_cluster_and_path(self, path):
+    def _try_get_first_cluster_and_path(self, path, is_file=False):
         dirs_order = list(filter(lambda x: x != '', path.split('/')))
         cur_dir_index = 0
         cur_dir_first_cluster = self._fat_worker.root_cluster \
@@ -128,8 +170,11 @@ class CLI:
             files = self._fat_worker.get_all_files_in_dir(
                 cur_dir_first_cluster)
             for file in files:
-                if (file.is_directory
-                        and file.name == dirs_order[cur_dir_index]):
+                legal_path = (file.is_directory
+                              or (file.is_file
+                                  and cur_dir_index == len(dirs_order) - 1
+                                  and is_file))
+                if legal_path and file.name == dirs_order[cur_dir_index]:
                     cur_dir_index += 1
                     cur_dir_first_cluster = file.first_cluster
                     if cur_dir_first_cluster == 0:
