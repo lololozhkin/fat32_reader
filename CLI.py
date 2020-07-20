@@ -18,6 +18,8 @@ def normalize_path(path):
     normalized_path = '/'.join(edited_path)
     if normalized_path.endswith('/'):
         normalized_path = normalized_path[:-1]
+    if not normalized_path.startswith('/'):
+        normalized_path = '/' + normalized_path
     return normalized_path
 
 
@@ -30,10 +32,7 @@ class CLI:
 
     @property
     def current_dir(self):
-        if self._current_directory.startswith('/'):
-            return self._current_directory
-        else:
-            return f'/{self._current_directory}'
+        return self._current_directory
 
     def ls(self, params=None):
         parser = argparse.ArgumentParser(
@@ -62,7 +61,8 @@ class CLI:
         cluster = self._current_directory_cluster
         if args.path is not None:
             try:
-                _, cluster = self._try_get_first_cluster_and_path(args.path)
+                _, file = self._try_get_path_and_file(args.path)
+                cluster = file.first_cluster
             except ValueError:
                 print(f"\n{Fore.RED}No such a directory "
                       f"{Style.RESET_ALL}{args.path}\n")
@@ -100,7 +100,8 @@ class CLI:
 
         args = args.path
         try:
-            path, cluster = self._try_get_first_cluster_and_path(args)
+            path, file = self._try_get_path_and_file(args)
+            cluster = file.first_cluster
             self._current_directory = path
             self._current_directory_cluster = cluster
         except ValueError:
@@ -133,18 +134,17 @@ class CLI:
         (disk_path, img_path) = (normalize_path(path)
                                  for path in (args.disk_path, args.img_path))
         try:
-            _, file_cluster = self._try_get_first_cluster_and_path(img_path,
-                                                                   True)
+            _, file = self._try_get_path_and_file(img_path, True)
         except ValueError:
             print(f"\n{Fore.RED}No such a file on disk image "
                   f"{Style.RESET_ALL}{img_path}\n")
             return True
 
         try:
+            open(disk_path, 'wb').close()
             with open(disk_path, 'wb') as f:
-                for sector in self._fat_worker.get_all_sectors_of_file(
-                        file_cluster):
-                    f.write(sector)
+                for data in self._fat_worker.get_file_data(file):
+                    f.write(data)
         except FileNotFoundError:
             print(f"\n{Fore.RED}No such file on your computer "
                   f"{Style.RESET_ALL}{disk_path}\n")
@@ -156,7 +156,7 @@ class CLI:
     def tree(self, params=None):
         pass
 
-    def _try_get_first_cluster_and_path(self, path, is_file=False):
+    def _try_get_path_and_file(self, path, is_file=False):
         dirs_order = list(filter(lambda x: x != '', path.split('/')))
         cur_dir_index = 0
         cur_dir_first_cluster = self._fat_worker.root_cluster \
@@ -164,8 +164,9 @@ class CLI:
             else self._current_directory_cluster
 
         if len(dirs_order) == 0:
-            return '/', self._fat_worker.root_cluster
+            return '/', self._fat_worker.root_dir_file
 
+        cur_file = None
         while True:
             files = self._fat_worker.get_all_files_in_dir(
                 cur_dir_first_cluster)
@@ -177,8 +178,10 @@ class CLI:
                 if legal_path and file.name == dirs_order[cur_dir_index]:
                     cur_dir_index += 1
                     cur_dir_first_cluster = file.first_cluster
+                    cur_file = file
                     if cur_dir_first_cluster == 0:
                         cur_dir_first_cluster = self._fat_worker.root_cluster
+                        cur_file = self._fat_worker.root_dir_file
                     break
             else:
                 raise ValueError("No such a directory")
@@ -189,4 +192,4 @@ class CLI:
                 else:
                     cur_dir = os.path.join(self.current_dir, path)
                 cur_dir = normalize_path(cur_dir)
-                return cur_dir, cur_dir_first_cluster
+                return cur_dir, cur_file

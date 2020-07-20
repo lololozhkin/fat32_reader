@@ -14,7 +14,8 @@ class File:
                  date=None,
                  file_size=None,
                  first_cluster=None,
-                 alias=None):
+                 alias=None,
+                 fat_worker=None):
         self._name = name
         self._attributes = attributes
         self._time = time
@@ -22,6 +23,7 @@ class File:
         self._file_size = file_size
         self._first_cluster = first_cluster
         self._alias = alias
+        self._fat_worker = fat_worker
 
     def __str__(self):
         return f"{self.type.name[0].lower()} " \
@@ -29,6 +31,9 @@ class File:
                f"{self.file_size}b " \
                f"{self.name}"
         # f"{bin(self.attributes)[2:].rjust(8, '0')} "
+
+    def data(self):
+        yield from self._fat_worker.get_all_sectors_of_file(self.first_cluster)
 
     @property
     def name(self):

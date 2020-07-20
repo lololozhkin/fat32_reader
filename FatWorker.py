@@ -1,6 +1,7 @@
 import struct
 from Entry import Entry
 from File import File
+from ATTR import ATTR
 
 
 class FatWorker:
@@ -9,7 +10,7 @@ class FatWorker:
     BAD_CLUSTER = 0x0FFFFFF7
     LAST_LONG_ENTRY_MASK = 0x40
 
-    def __init__(self, path: str):
+    def __init__(self, path):
         self.image = open(path, 'rb')
 
         self.image.seek(11)
@@ -31,6 +32,13 @@ class FatWorker:
                                   (self.num_fats * self.fats_z32))
 
         self.image.seek(self.first_data_sector * self.bytes_per_sector)
+
+    @property
+    def root_dir_file(self):
+        return File(name='/',
+                    attributes=ATTR.DIRECTORY,
+                    first_cluster=self.root_cluster
+                    )
 
     def get_first_sector_of_cluster(self, cluster):
         return (((cluster - 2) * self.sectors_per_cluster)
@@ -72,14 +80,12 @@ class FatWorker:
             cur_cluster = self.get_next_cluster(cur_cluster)
 
     def get_all_files_in_dir(self, dir_first_cluster):
-        yield from FatWorker.get_files_from_entries(
+        yield from self.get_files_from_entries(
             self.get_all_entries_of_dir(dir_first_cluster))
 
-    @staticmethod
-    def get_files_from_entries(entries_iterable):
+    def get_files_from_entries(self, entries_iterable):
         for cur_entry in entries_iterable:
-            cur_entry: Entry
-            file = File()
+            file = File(fat_worker=self)
             if cur_entry.is_long_entry:
                 long_entry_parts = [cur_entry]
                 short_entry = None
@@ -116,6 +122,17 @@ class FatWorker:
 
             cur_cluster = self.get_next_cluster(cur_cluster)
             if cur_cluster == self.EOC or cur_cluster >= self.EOF:
+                break
+
+    def get_file_data(self, file):
+        first_cluster = file.first_cluster
+        size = file.file_size
+        for sector in self.get_all_sectors_of_file(first_cluster):
+            if size >= self.bytes_per_sector:
+                size -= self.bytes_per_sector
+                yield sector
+            else:
+                yield sector[:size]
                 break
 
     @staticmethod

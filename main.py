@@ -8,11 +8,12 @@ from colorama import Fore, Style
 def main():
     colorama.init()
     parser = argparse.ArgumentParser(
-        description="Program to view directories and files of FAT32 image")
+        description="Program to view directories and files of FAT32 image"
+    )
     parser.add_argument('file',
                         default='/home/lololozhkin/img_test/test.img')
 
-    args = parser.parse_args(['/home/lololozhkin/img_test/test.img'])
+    args = parser.parse_args()
     file = args.file
     fat_worker = FatWorker(file)
     cli = CLI(fat_worker)
@@ -42,7 +43,7 @@ def main():
         params = command[len(util) + 1:]
 
         try:
-            res = utils[util].__call__(params)
+            res = utils[util](params)
             if not res:
                 break
         except KeyError:
