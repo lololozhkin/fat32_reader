@@ -44,12 +44,11 @@ def main():
 
         try:
             res = utils[util](params)
+            print(Style.RESET_ALL, end='')
             if not res:
                 break
         except KeyError:
-            print()
             print(f"{Fore.RED}Command not found '{util}'{Style.RESET_ALL}")
-            print()
 
 
 if __name__ == '__main__':

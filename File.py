@@ -30,7 +30,6 @@ class File:
                f"{self.date} {self.time} " \
                f"{self.file_size}b " \
                f"{self.name}"
-        # f"{bin(self.attributes)[2:].rjust(8, '0')} "
 
     def data(self):
         yield from self._fat_worker.get_all_sectors_of_file(self.first_cluster)

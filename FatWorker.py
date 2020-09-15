@@ -90,7 +90,6 @@ class FatWorker:
                 long_entry_parts = [cur_entry]
                 short_entry = None
                 for entry_part in entries_iterable:
-                    entry_part: Entry
                     if entry_part.is_short_entry:
                         short_entry = entry_part
                         break

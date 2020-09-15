@@ -5,6 +5,11 @@ from colorama import Fore, Style
 import argparse
 
 
+DIR_COLOR = Fore.LIGHTCYAN_EX
+FILE_COLOR = Fore.LIGHTYELLOW_EX
+ERR_COLOR = Fore.RED
+
+
 def normalize_path(path):
     path = path.split('/')
     edited_path = []
@@ -64,26 +69,24 @@ class CLI:
                 _, file = self._try_get_path_and_file(args.path)
                 cluster = file.first_cluster
             except ValueError:
-                print(f"\n{Fore.RED}No such a directory "
+                print(f"\n{ERR_COLOR}No such a directory "
                       f"{Style.RESET_ALL}{args.path}\n")
                 return True
 
-        print()
         for file in self._fat_worker.get_all_files_in_dir(cluster):
             if file.name in ('.', '..') and not args.all:
                 continue
             if args.l:
-                print(file.__str__()[:-len(file.name)], end=' ')
+                print(str(file)[:-len(file.name)], end=' ')
             if file.is_directory:
-                print(Fore.BLUE + file.name)
+                print(DIR_COLOR + file.name)
             elif file.is_file:
-                print(Fore.LIGHTYELLOW_EX + file.name)
+                print(FILE_COLOR + file.name)
             print(Style.RESET_ALL, end='')
-        print()
         return True
 
     def pwd(self, args=None):
-        print(f'\n{Fore.LIGHTCYAN_EX}{self.current_dir}{Style.RESET_ALL}\n')
+        print(f'{DIR_COLOR}{self.current_dir}{Style.RESET_ALL}')
         return True
 
     def cd(self, args=None):
@@ -105,7 +108,7 @@ class CLI:
             self._current_directory = path
             self._current_directory_cluster = cluster
         except ValueError:
-            print(f"\n{Fore.RED}No such a directory {Style.RESET_ALL}{args}\n")
+            print(f"\n{ERR_COLOR}No such a directory {Style.RESET_ALL}{args}\n")
         return True
 
     def exit(self, params=None):
@@ -131,13 +134,15 @@ class CLI:
         except SystemExit:
             return True
 
-        (disk_path, img_path) = (normalize_path(path)
-                                 for path in (args.disk_path, args.img_path))
+        disk_path = normalize_path(args.disk_path)
+        img_path = normalize_path(self._current_directory
+                                  + normalize_path(args.img_path))
+
         try:
             _, file = self._try_get_path_and_file(img_path, True)
         except ValueError:
-            print(f"\n{Fore.RED}No such a file on disk image "
-                  f"{Style.RESET_ALL}{img_path}\n")
+            print(f"{ERR_COLOR}No such a file on disk image "
+                  f"{Style.RESET_ALL}{img_path}")
             return True
 
         try:
@@ -146,11 +151,11 @@ class CLI:
                 for data in self._fat_worker.get_file_data(file):
                     f.write(data)
         except FileNotFoundError:
-            print(f"\n{Fore.RED}No such file on your computer "
-                  f"{Style.RESET_ALL}{disk_path}\n")
+            print(f"{ERR_COLOR}No such file on your computer "
+                  f"{Style.RESET_ALL}{disk_path}")
         except PermissionError:
-            print(f"\n{Fore.RED}Permission error for file "
-                  f"{Style.RESET_ALL}{disk_path}\n")
+            print(f"{ERR_COLOR}Permission error for file "
+                  f"{Style.RESET_ALL}{disk_path}")
         return True
 
     def tree(self, params=None):
