@@ -28,7 +28,7 @@ class File:
     def __str__(self):
         return f"{self.type.name[0].lower()} " \
                f"{self.date} {self.time} " \
-               f"{self.file_size}b " \
+               f"{str(self.file_size).rjust(10, ' ')}b " \
                f"{self.name}"
 
     def data(self):

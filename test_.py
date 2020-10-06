@@ -2,10 +2,10 @@ from io import StringIO
 import sys
 import functools
 from FatWorker import FatWorker
+from FileSystem import FileSystem
 from CLI import CLI
-from colorama import Style, Fore
+from unittest import TestCase
 import colorama
-import itertools
 import re
 
 
@@ -16,9 +16,12 @@ def get_all_std_output(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         stdout = sys.stdout
+
         all_output = StringIO()
         sys.stdout = all_output
+
         func(*args, **kwargs)
+
         sys.stdout = stdout
         return all_output.getvalue()
     return wrapper
@@ -34,66 +37,65 @@ def get_set_from_ls_out(ls_out):
     return output
 
 
-class TestCLI:
+class TestCLI(TestCase):
     colorama.init()
-    fat_worker = FatWorker('test.img')
+
+    def setUp(self):
+        self.file_system = FileSystem(FatWorker('test.img'))
 
     def test_ls_without_params(self):
-        cli = CLI(self.fat_worker)
-        test_ls = get_all_std_output(cli.ls)
-
-        output = get_set_from_ls_out(test_ls(''))
+        cli = CLI(self.file_system, True)
+        ls_set = {file for file in cli.ls('')}
 
         correct_set = set((f'dir{i}' for i in range(5)))
         correct_set.update({f'file{i}' for i in range(5)})
+        correct_set.update({'efi'})
 
-        assert output == correct_set
+        self.assertSetEqual(ls_set, correct_set)
 
     def test_ls_with_path(self):
-        cli = CLI(self.fat_worker)
-        test_ls = get_all_std_output(cli.ls)
+        cli = CLI(self.file_system, True)
 
-        output = get_set_from_ls_out(test_ls('/dir0/'))
+        output = set(cli.ls('/dir0/'))
 
         correct_set = {'dir1', 'some_script.py'}
 
-        assert output == correct_set
+        self.assertSetEqual(correct_set, output)
 
-        output = remove_control_sequences(test_ls('abacaba')).replace('\n', '')
-        correct_output = 'No such a directory abacaba'
-        assert output == correct_output
+        output = cli.ls('abacaba')
+        correct_output = ['No such a directory abacaba']
+        self.assertEqual(correct_output, output)
 
     def test_ls_with_all_flag(self):
-        cli = CLI(self.fat_worker)
-        test_ls = get_all_std_output(cli.ls)
+        cli = CLI(self.file_system, True)
 
-        output = get_set_from_ls_out(test_ls('-a /dir0/'))
+        output = set(cli.ls('-a /dir0/'))
 
         correct_set = {'dir1', 'some_script.py', '..', '.'}
 
-        assert output == correct_set
+        self.assertSetEqual(output, correct_set)
 
     def test_cd_with_abs_path(self):
-        cli = CLI(self.fat_worker)
+        cli = CLI(self.file_system, True)
         cli.cd('/dir0/')
-        assert cli.current_dir == '/dir0'
+        self.assertEqual(cli.pwd(), ['/dir0'])
 
         cli.cd('/dir0/dir1')
-        assert cli.current_dir == '/dir0/dir1'
+        self.assertEqual(cli.pwd(''), ['/dir0/dir1'])
 
     def test_cd_with_relative_path(self):
-        cli = CLI(self.fat_worker)
+        cli = CLI(self.file_system, True)
         cli.cd('dir0')
-        assert cli.current_dir == '/dir0'
+        self.assertEqual(cli.pwd(), ['/dir0'])
 
         cli.cd('./dir1')
-        assert cli.current_dir == '/dir0/dir1'
+        self.assertEqual(cli.pwd(), ['/dir0/dir1'])
 
         cli.cd('../../dir1')
-        assert cli.current_dir == '/dir1'
+        self.assertEqual(cli.pwd(), ['/dir1'])
 
         cli.cd('./././')
-        assert cli.current_dir == '/dir1'
+        self.assertEqual(cli.pwd(), ['/dir1'])
 
     class TestFatWorker:
         colorama.init()

@@ -1,5 +1,6 @@
 import argparse
 from FatWorker import FatWorker
+from FileSystem import FileSystem
 from CLI import CLI
 import colorama
 from colorama import Fore, Style
@@ -11,24 +12,23 @@ def main():
         description="Program to view directories and files of FAT32 image"
     )
     parser.add_argument('file',
-                        default='/home/lololozhkin/img_test/test.img')
+                        help='Path to image')
 
-    args = parser.parse_args()
+    args = parser.parse_args('test.img'.split())
     file = args.file
-    fat_worker = FatWorker(file)
-    cli = CLI(fat_worker)
+    fs = FileSystem(FatWorker(file))
+    cli = CLI(fs)
 
     utils = {
         'cd': cli.cd,
         'pwd': cli.pwd,
         'ls': cli.ls,
-        'exit': cli.exit,
-        'export': cli.export
+        'export': cli.export,
     }
 
     while True:
         try:
-            command = input(f'{Fore.LIGHTCYAN_EX}{cli.current_dir}'
+            command = input(f'{Fore.LIGHTCYAN_EX}{fs.current_dir}'
                             f'{Fore.BLUE}${Style.RESET_ALL}: ')
 
             command = ' '.join(command.split(' '))
@@ -42,11 +42,16 @@ def main():
         util = command.split()[0]
         params = command[len(util) + 1:]
 
+        if util == 'exit':
+            print('Good bye')
+            fs.exit()
+            break
+
         try:
             res = utils[util](params)
-            print(Style.RESET_ALL, end='')
-            if not res:
-                break
+            for item in res:
+                print(item)
+
         except KeyError:
             print(f"{Fore.RED}Command not found '{util}'{Style.RESET_ALL}")
 
