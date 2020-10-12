@@ -22,7 +22,7 @@ class CLI:
 
     @property
     def reset_all(self):
-        return '' if self._testing else self.reset_all
+        return '' if self._testing else Style.RESET_ALL
 
     def ls(self, params=None):
         parser = Parsers.ls_parser()
