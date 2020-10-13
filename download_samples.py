@@ -31,7 +31,7 @@ def main():
     except FileExistsError:
         pass
 
-    for href, file in FILES:
+    for href, file in FILES.items():
         print(f'Downloading {file}')
         download_file(href, os.path.join('test_files', file))
 
