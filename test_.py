@@ -41,7 +41,7 @@ class TestCLI(TestCase):
     colorama.init()
 
     def setUp(self):
-        self.file_system = FileSystem(FatWorker('test.img'))
+        self.file_system = FileSystem(FatWorker('test_files/simple_image_only_eng_letters.img'))
 
     def test_ls_without_params(self):
         cli = CLI(self.file_system, True)
