@@ -136,12 +136,10 @@ class FatWorker:
 
     @staticmethod
     def _generate_long_name(entries: list):
-        name = ''.join(
-            reversed(
-                list(
-                    map(lambda entry: entry.long_entry_letters,
-                        entries)
+        name = b''.join(
+            reversed(list(
+                map(lambda entry: entry.long_entry_letters, entries)
                 )
             )
         )
-        return name
+        return name.decode('utf-16')

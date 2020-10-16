@@ -4,6 +4,7 @@ from FileSystem import FileSystem
 from CLI import CLI
 import colorama
 from colorama import Fore, Style
+import readline
 
 
 def main():
@@ -14,7 +15,8 @@ def main():
     parser.add_argument('file',
                         help='Path to image')
 
-    args = parser.parse_args('test.img'.split())
+    # args = parser.parse_args()
+    args = parser.parse_args('/home/lololozhkin/images/all_possible_cases.img'.split())
     file = args.file
     fs = FileSystem(FatWorker(file))
     cli = CLI(fs)
