@@ -47,7 +47,7 @@ class Entry:
     @property
     def alias_name(self):
         if not self.is_long_entry:
-            alias = self.entry[:11].decode(encoding='cp437')
+            alias = self.entry[:11].decode(encoding='ascii')
             ext = alias[-3:]
             name = alias[:-3].rstrip(' ')
             if name in ('.', '..'):

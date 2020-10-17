@@ -95,7 +95,8 @@ class CLI:
                 return f"{self.err_color}there isn't such a file on image" \
                        f"{self.reset_all}{args.img_path}"
             else:
-                return f"{self.err_color}There isn't such a file on your computer" \
+                return f"{self.err_color}" \
+                       f"There isn't such a file on your computer" \
                        f"{self.reset_all}{args.disk_path}"
         except PermissionError as e:
             return f"{self.err_color}Permission error{self.reset_all}"

@@ -1,13 +1,6 @@
 from FatWorker import FatWorker
 import os
 import colorama
-from colorama import Fore, Style
-import argparse
-
-
-DIR_COLOR = Fore.LIGHTCYAN_EX
-FILE_COLOR = Fore.LIGHTYELLOW_EX
-ERR_COLOR = Fore.RED
 
 
 def normalize_path(path):

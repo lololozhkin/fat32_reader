@@ -1,47 +1,13 @@
-from io import StringIO
-import sys
-import functools
 from FatWorker import FatWorker
-from FileSystem import FileSystem
 from CLI import CLI
 from unittest import TestCase
-import colorama
-import re
-
-
-regex = r'\x1b\[(?:\d{1,2})m'
-
-
-def get_all_std_output(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        stdout = sys.stdout
-
-        all_output = StringIO()
-        sys.stdout = all_output
-
-        func(*args, **kwargs)
-
-        sys.stdout = stdout
-        return all_output.getvalue()
-    return wrapper
-
-
-def remove_control_sequences(string):
-    return re.sub(regex, '', string)
-
-
-def get_set_from_ls_out(ls_out):
-    output = set(remove_control_sequences(ls_out).split('\n'))
-    output.discard('')
-    return output
+from FileSystem import FileSystem
 
 
 class TestCLI(TestCase):
-    colorama.init()
-
     def setUp(self):
-        self.file_system = FileSystem(FatWorker('test_files/simple_image_only_eng_letters.img'))
+        self.file_system = FileSystem(
+            FatWorker('test_files/simple_image_only_eng_letters.img'))
 
     def test_ls_without_params(self):
         cli = CLI(self.file_system, True)
@@ -98,7 +64,6 @@ class TestCLI(TestCase):
         self.assertEqual(cli.pwd(), ['/dir1'])
 
     class TestFatWorker:
-        colorama.init()
         fat_worker = FatWorker('test.img')
 
         def test_(self):
