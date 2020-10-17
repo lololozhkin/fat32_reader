@@ -30,7 +30,7 @@ class CLI:
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            return True
+            return []
 
         try:
             files = self.file_system.ls(args.path)
@@ -59,7 +59,7 @@ class CLI:
             try:
                 args = parser.parse_args(params.split())
             except SystemExit:
-                return True
+                return []
 
         current_dir = self.file_system.current_dir
         return [f'{self.dir_color}{current_dir}{self.reset_all}']
@@ -69,7 +69,7 @@ class CLI:
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            pass
+            return []
 
         directory = args.path
         try:
@@ -86,17 +86,19 @@ class CLI:
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            return True
+            return []
 
         try:
             self.file_system.export(args.disk_path, args.img_path)
         except FileNotFoundError as e:
             if e.args[0].endswith('image'):
-                return f"{self.err_color}there isn't such a file on image" \
-                       f"{self.reset_all}{args.img_path}"
+                return [f"{self.err_color}there isn't such a file on image"
+                        f"{self.reset_all}{args.img_path}"]
             else:
-                return f"{self.err_color}" \
-                       f"There isn't such a file on your computer" \
-                       f"{self.reset_all}{args.disk_path}"
+                return [f"{self.err_color}"
+                        f"There isn't such a file on your computer"
+                        f"{self.reset_all}{args.disk_path}"]
         except PermissionError as e:
-            return f"{self.err_color}Permission error{self.reset_all}"
+            return [f"{self.err_color}Permission error{self.reset_all}"]
+
+        return ["Done"]

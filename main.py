@@ -15,7 +15,8 @@ def main():
     parser.add_argument('file',
                         help='Path to image')
 
-    args = parser.parse_args()
+    args = parser.parse_args(
+        "test_files/simple_image_only_eng_letters.img".split())
     file = args.file
     fs = FileSystem(FatWorker(file))
     cli = CLI(fs)
