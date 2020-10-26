@@ -25,7 +25,7 @@ def download_file(public_key, file_path):
         bar.finish()
 
 
-def main():
+def download_samples():
     try:
         os.mkdir('test_files')
     except FileExistsError:
@@ -39,4 +39,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    download_samples()

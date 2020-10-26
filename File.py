@@ -15,7 +15,8 @@ class File:
                  file_size=None,
                  first_cluster=None,
                  alias=None,
-                 fat_worker=None):
+                 fat_worker=None,
+                 path=None):
         self._name = name
         self._attributes = attributes
         self._time = time
@@ -24,6 +25,7 @@ class File:
         self._first_cluster = first_cluster
         self._alias = alias
         self._fat_worker = fat_worker
+        self._path = path
 
     def __str__(self):
         return f"{self.type.name[0].lower()} " \
@@ -126,3 +128,11 @@ class File:
     @property
     def is_volume(self):
         return self.type == FileType.Volume
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, path):
+        self._path = path

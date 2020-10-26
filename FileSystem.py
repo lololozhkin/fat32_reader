@@ -30,31 +30,37 @@ class FileSystem:
 
     @property
     def current_dir(self):
-        return self._try_get_path_and_file(self._current_directory)[0]
+        path, file = self._try_get_path_and_file(self._current_directory)
+        file.path = path
+        return path
 
     def ls(self, directory='./'):
         try:
-            _, file = self._try_get_path_and_file(directory)
+            dir_path, file = self._try_get_path_and_file(directory)
             cluster = file.first_cluster
         except ValueError:
             raise FileNotFoundError("No such a directory")
 
-        return self._fat_worker.get_all_files_in_dir(cluster)
+        files = list(self._fat_worker.get_all_files_in_dir(cluster))
+        dir_path = '' if dir_path == '/' else dir_path
+        for file in files:
+            file.path = '/'.join((dir_path, file.name))
+
+        return files
 
     def cd(self, directory='./'):
         try:
             path, file = self._try_get_path_and_file(directory)
             cluster = file.first_cluster
+            file.path = path
             self._current_directory = path
             self._current_directory_cluster = cluster
         except ValueError:
             raise FileNotFoundError(
                 f"there isn't such a directory {directory}")
-        return True
 
-    def exit(self, params=None):
-        self._fat_worker.image.close()
-        return False
+    def exit(self):
+        self._fat_worker.close()
 
     def export(self, disk_path, img_path):
         disk_path = normalize_path(disk_path)
@@ -75,10 +81,25 @@ class FileSystem:
             raise FileNotFoundError('No such a file on your computer')
         except PermissionError:
             raise PermissionError("Permission error")
-        return True
 
     def tree(self, params=None):
         pass
+
+    def walk(self, start_path):
+        path, file = self._try_get_path_and_file(start_path)
+        path = '' if path == '/' else path
+        yield from self._walk(file.first_cluster, path)
+
+    def _walk(self, dir_cluster, dir_path):
+        files = self._fat_worker.get_all_files_in_dir(dir_cluster)
+        for file in files:
+            file.path = '/'.join((dir_path, file.name))
+
+            if file.is_file:
+                yield file
+            elif file.name not in ('..', '.'):
+                yield file
+                yield from self._walk(file.first_cluster, file.path)
 
     def _try_get_path_and_file(self, path, is_file=False):
         if not path.startswith('/'):

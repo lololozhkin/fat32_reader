@@ -21,6 +21,8 @@ def main():
     fs = FileSystem(FatWorker(file))
     cli = CLI(fs)
 
+    files = fs.walk('/')
+
     utils = {
         'cd': cli.cd,
         'pwd': cli.pwd,

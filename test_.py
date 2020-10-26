@@ -2,12 +2,27 @@ from FatWorker import FatWorker
 from CLI import CLI
 from unittest import TestCase
 from FileSystem import FileSystem
+from download_samples import download_samples
+import shutil
 
 
 class TestCLI(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        download_samples()
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree('test_files')
+        pass
+
     def setUp(self):
         self.file_system = FileSystem(
             FatWorker('test_files/simple_image_only_eng_letters.img'))
+
+    def tearDown(self):
+        self.file_system.exit()
 
     def test_ls_without_params(self):
         cli = CLI(self.file_system, True)

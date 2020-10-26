@@ -134,6 +134,9 @@ class FatWorker:
                 yield sector[:size]
                 break
 
+    def close(self):
+        self.image.close()
+
     @staticmethod
     def _generate_long_name(entries: list):
         name = b''.join(
