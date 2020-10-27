@@ -128,8 +128,8 @@ class FatWorker:
 
     def get_non_free_fat_clusters(self):
         clusters_num = (self.fats_z32 * self.bytes_per_sector) >> 2
-        for cluster in range(clusters_num):
-            if self.get_next_cluster(cluster) == 0:
+        for cluster in range(2, clusters_num):
+            if self.get_next_cluster(cluster) != 0:
                 yield cluster
 
     def get_file_data(self, file):

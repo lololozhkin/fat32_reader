@@ -90,7 +90,18 @@ class FileSystem:
         path = '' if path == '/' else path
         yield from self._walk(file.first_cluster, path)
 
+    def scan(self):
+        result = self._scan_for_lost_cluster_chains()
+        if result is not None:
+            return 'some clusters are lost: ' \
+                   + '\n'.join(hex(x) for x in result)
+        else:
+            return 'everything is ok'
+
     def _walk(self, dir_cluster, dir_path):
+        if dir_cluster == self._fat_worker.root_cluster:
+            yield self._fat_worker.root_dir_file
+
         files = self._fat_worker.get_all_files_in_dir(dir_cluster)
         for file in files:
             file.path = '/'.join((dir_path, file.name))
@@ -108,7 +119,7 @@ class FileSystem:
             self._fat_worker.get_non_free_fat_clusters())
 
         if len(fat_non_free_clusters) > len(true_non_free_clusters):
-            return fat_non_free_clusters
+            return fat_non_free_clusters.difference(true_non_free_clusters)
 
     def _get_all_non_free_clusters(self):
         all_files = self.walk('/')

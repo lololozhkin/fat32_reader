@@ -21,6 +21,8 @@ def main():
     fs = FileSystem(FatWorker(file))
     cli = CLI(fs)
 
+    print(fs.scan())
+
     files = fs.walk('/')
 
     utils = {
