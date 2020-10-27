@@ -101,7 +101,19 @@ class FileSystem:
                 yield file
                 yield from self._walk(file.first_cluster, file.path)
 
-    def
+    def _scan_for_lost_cluster_chains(self):
+        true_non_free_clusters = set(
+            self._get_all_non_free_clusters())
+        fat_non_free_clusters = set(
+            self._fat_worker.get_non_free_fat_clusters())
+
+        if len(fat_non_free_clusters) > len(true_non_free_clusters):
+            return fat_non_free_clusters
+
+    def _get_all_non_free_clusters(self):
+        all_files = self.walk('/')
+        for file in all_files:
+            yield from self._fat_worker.get_cluster_chain(file.first_cluster)
 
     def _try_get_path_and_file(self, path, is_file=False):
         if not path.startswith('/'):

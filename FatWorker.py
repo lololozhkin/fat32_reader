@@ -120,16 +120,17 @@ class FatWorker:
                 break
 
     def get_all_sectors_of_file(self, first_cluster):
-        cur_cluster = first_cluster
-        while True:
-            first_sector = self.get_first_sector_of_cluster(cur_cluster)
+        for cluster in self.get_cluster_chain(first_cluster):
+            first_sector = self.get_first_sector_of_cluster(cluster)
             for i in range(self.sectors_per_cluster):
                 self.image.seek((first_sector + i) * self.bytes_per_sector)
                 yield self.image.read(self.bytes_per_sector)
 
-            cur_cluster = self.get_next_cluster(cur_cluster)
-            if cur_cluster == self.EOC or cur_cluster >= self.EOF:
-                break
+    def get_non_free_fat_clusters(self):
+        clusters_num = (self.fats_z32 * self.bytes_per_sector) >> 2
+        for cluster in range(clusters_num):
+            if self.get_next_cluster(cluster) == 0:
+                yield cluster
 
     def get_file_data(self, file):
         first_cluster = file.first_cluster
