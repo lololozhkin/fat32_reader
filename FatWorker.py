@@ -111,6 +111,14 @@ class FatWorker:
 
             yield file
 
+    def get_cluster_chain(self, first_cluster):
+        cur_cluster = first_cluster
+        while True:
+            yield cur_cluster
+            cur_cluster = self.get_next_cluster(cur_cluster)
+            if cur_cluster == self.EOC or cur_cluster >= self.EOF:
+                break
+
     def get_all_sectors_of_file(self, first_cluster):
         cur_cluster = first_cluster
         while True:

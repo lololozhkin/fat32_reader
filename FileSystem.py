@@ -101,6 +101,8 @@ class FileSystem:
                 yield file
                 yield from self._walk(file.first_cluster, file.path)
 
+    def
+
     def _try_get_path_and_file(self, path, is_file=False):
         if not path.startswith('/'):
             path = normalize_path(os.path.join(self._current_directory, path))
