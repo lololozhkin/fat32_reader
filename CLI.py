@@ -102,3 +102,21 @@ class CLI:
             return [f"{self.err_color}Permission error{self.reset_all}"]
 
         return ["Done"]
+
+    def scan(self, intersection, lost):
+        if lost:
+            yield from self._scan_for_lost_clusters()
+        if intersection:
+            yield from self._scan_for_intersected_chains()
+
+    def _scan_for_lost_clusters(self):
+        yield 'Scanning for lost clusters...'
+        res = self.file_system.scan_lost_clusters()
+        yield 'Scan finished'
+        yield res
+
+    def _scan_for_intersected_chains(self):
+        yield 'Scanning for intersected chains...'
+        res = self.file_system.scan_for_intersected_chains()
+        yield 'Scan finished'
+        yield res

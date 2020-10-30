@@ -15,11 +15,34 @@ def main():
     parser.add_argument('file',
                         help='Path to image')
 
-    args = parser.parse_args(
-        "./test_files/bad_image.img".split())
-    # args = parser.parse_args('/dev/sdc1'.split())
+    parser.add_argument('-i', '--scan-intersection',
+                        action='store_true',
+                        help='scan for intersected cluster chains before work')
+
+    parser.add_argument('-l', '--scan-lost',
+                        action='store_true',
+                        help='scan for lost clusters before work')
+
+    parser.add_argument('-s', '--scan',
+                        action='store_true',
+                        help='scan image for problems before work')
+
+    parser.add_argument('-r', '--resolve',
+                        action='store_true',
+                        help='resolve all solvable problems of image')
+
+    # args = parser.parse_args(
+    #     "./test_files/bad_image.img".split())
+    args = parser.parse_args('/dev/sdc1'.split())
+    # args = parser.parse_args()
     file = args.file
-    fs = FileSystem(FatWorker(file))
+    try:
+        fs = FileSystem(FatWorker(file))
+    except PermissionError:
+        print('Not able to read image because of Permission Error.')
+        print('Good bye')
+        return 0
+
     cli = CLI(fs)
 
     print(fs.scan_lost_clusters())
@@ -60,6 +83,11 @@ def main():
 
         except KeyError:
             print(f"{Fore.RED}Command not found '{util}'{Style.RESET_ALL}")
+        except OSError as e:
+            print('Critical Error occurred:', e)
+            fs.exit()
+            print('Good bye')
+            break
 
 
 if __name__ == '__main__':
