@@ -40,6 +40,10 @@ class FatWorker:
                     first_cluster=self.root_cluster
                     )
 
+    @property
+    def total_clusters(self):
+        return self.bytes_per_sector * self.fats_z32 >> 2
+
     def get_first_sector_of_cluster(self, cluster):
         return (((cluster - 2) * self.sectors_per_cluster)
                 + self.first_data_sector)

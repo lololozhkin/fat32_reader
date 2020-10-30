@@ -16,14 +16,14 @@ def main():
                         help='Path to image')
 
     args = parser.parse_args(
-        "test_files/simple_image_only_eng_letters.img".split())
+        "./test_files/bad_image.img".split())
+    # args = parser.parse_args('/dev/sdc1'.split())
     file = args.file
     fs = FileSystem(FatWorker(file))
     cli = CLI(fs)
 
-    print(fs.scan())
-
-    files = fs.walk('/')
+    print(fs.scan_lost_clusters())
+    print(fs.scan_for_intersected_chains())
 
     utils = {
         'cd': cli.cd,

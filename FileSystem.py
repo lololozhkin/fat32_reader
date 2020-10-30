@@ -1,6 +1,7 @@
 from FatWorker import FatWorker
 import os
 import colorama
+from collections import defaultdict
 
 
 def normalize_path(path):
@@ -10,7 +11,8 @@ def normalize_path(path):
         if directory == '.':
             continue
         if directory == '..':
-            edited_path.pop(-1)
+            if len(edited_path):
+                edited_path.pop(-1)
         else:
             edited_path.append(directory)
     normalized_path = '/'.join(edited_path)
@@ -85,18 +87,41 @@ class FileSystem:
     def tree(self, params=None):
         pass
 
-    def walk(self, start_path):
+    def walk(self, start_path='/'):
         path, file = self._try_get_path_and_file(start_path)
         path = '' if path == '/' else path
         yield from self._walk(file.first_cluster, path)
 
-    def scan(self):
+    def scan_lost_clusters(self):
         result = self._scan_for_lost_cluster_chains()
         if result is not None:
-            return 'some clusters are lost: ' \
-                   + '\n'.join(hex(x) for x in result)
+            frac = (len(result) / self._fat_worker.total_clusters) * 100
+            return 'some clusters are lost: \n' \
+                   + '\n'.join(f'{hex(x)} is lost' for x in result) \
+                   + f'\n\n{frac}% of sectors are lost'
         else:
-            return 'everything is ok'
+            return 'Everything is ok'
+
+    def scan_for_intersected_chains(self):
+        graph = defaultdict(list)
+        reversed_graph = defaultdict(list)
+        for file in self.walk('/'):
+            chain = list(
+                self._fat_worker.get_cluster_chain(file.first_cluster))
+            for from_cluster, to_cluster in zip(chain[:-1], chain[1:]):
+                graph[from_cluster].append(to_cluster)
+                reversed_graph[to_cluster].append(from_cluster)
+
+        res = list(self._find_clusters_before_intersections(reversed_graph))
+        if len(res):
+            return f'Some cluster-chains are intersected'
+        else:
+            return f'Everything is ok'
+
+    def _find_clusters_before_intersections(self, reversed_graph):
+        intersections = filter(
+            lambda x: len(x[1]) > 1, reversed_graph.items())
+        return (vertices for _, vertices in intersections)
 
     def _walk(self, dir_cluster, dir_path):
         if dir_cluster == self._fat_worker.root_cluster:
