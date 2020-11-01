@@ -124,18 +124,24 @@ class FileSystem:
         return (vertices for _, vertices in intersections)
 
     def _walk(self, dir_cluster, dir_path):
+        return map(lambda x: x[0],
+                   self._walk_with_depth(dir_cluster, dir_path))
+
+    def _walk_with_depth(self, dir_cluster, dir_path, depth=0):
         if dir_cluster == self._fat_worker.root_cluster:
-            yield self._fat_worker.root_dir_file
+            yield self._fat_worker.root_dir_file, 0
 
         files = self._fat_worker.get_all_files_in_dir(dir_cluster)
         for file in files:
             file.path = '/'.join((dir_path, file.name))
 
             if file.is_file:
-                yield file
+                yield file, depth
             elif file.name not in ('..', '.'):
-                yield file
-                yield from self._walk(file.first_cluster, file.path)
+                yield file, depth
+                yield from self._walk_with_depth(file.first_cluster,
+                                                 file.path,
+                                                 depth + 1)
 
     def _scan_for_lost_cluster_chains(self):
         true_non_free_clusters = set(

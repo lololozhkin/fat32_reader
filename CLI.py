@@ -114,9 +114,11 @@ class CLI:
         res = self.file_system.scan_lost_clusters()
         yield 'Scan finished'
         yield res
+        yield '\n'
 
     def _scan_for_intersected_chains(self):
         yield 'Scanning for intersected chains...'
         res = self.file_system.scan_for_intersected_chains()
         yield 'Scan finished'
         yield res
+        yield '\n'

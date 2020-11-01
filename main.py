@@ -31,10 +31,14 @@ def main():
                         action='store_true',
                         help='resolve all solvable problems of image')
 
-    # args = parser.parse_args(
-    #     "./test_files/bad_image.img".split())
-    args = parser.parse_args('/dev/sdc1'.split())
+    args = parser.parse_args(
+        "./test_files/bad_image.img -s".split())
+    # args = parser.parse_args('/dev/sdc1'.split())
     # args = parser.parse_args()
+
+    args.scan_intersection |= args.scan
+    args.scan_lost |= args.scan
+
     file = args.file
     try:
         fs = FileSystem(FatWorker(file))
@@ -44,9 +48,9 @@ def main():
         return 0
 
     cli = CLI(fs)
-
-    print(fs.scan_lost_clusters())
-    print(fs.scan_for_intersected_chains())
+    if args.scan_intersection or args.scan_lost:
+        for ans in cli.scan(args.scan_intersection, args.scan_lost):
+            print(ans)
 
     utils = {
         'cd': cli.cd,
