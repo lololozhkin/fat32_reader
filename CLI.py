@@ -1,6 +1,6 @@
-from FileSystem import FileSystem
+from file_system import FileSystem
 from colorama import Fore, Style
-from Parsers import Parsers
+from parsers import Parsers
 
 
 class CLI:
@@ -35,7 +35,7 @@ class CLI:
         try:
             files = self.file_system.ls(args.path)
         except FileNotFoundError as e:
-            return [f'{self.err_color}No such a directory {args.path}']
+            return [f'{self.err_color}No such directory {args.path}']
 
         response = []
         for file in files:
@@ -76,7 +76,7 @@ class CLI:
             self.file_system.cd(directory)
         except FileNotFoundError:
             return [
-                f"{self.err_color}There isn't such a directory{self.reset_all}"
+                f"{self.err_color}There isn't such directory{self.reset_all}"
             ]
         return []
 
@@ -92,11 +92,11 @@ class CLI:
             self.file_system.export(args.disk_path, args.img_path)
         except FileNotFoundError as e:
             if e.args[0].endswith('image'):
-                return [f"{self.err_color}there isn't such a file on image"
+                return [f"{self.err_color}there isn't such file on image "
                         f"{self.reset_all}{args.img_path}"]
             else:
                 return [f"{self.err_color}"
-                        f"There isn't such a file on your computer"
+                        f"There isn't such file on your computer"
                         f"{self.reset_all}{args.disk_path}"]
         except PermissionError as e:
             return [f"{self.err_color}Permission error{self.reset_all}"]

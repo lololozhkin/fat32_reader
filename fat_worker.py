@@ -1,6 +1,6 @@
 import struct
-from Entry import Entry
-from File import File
+from entry import Entry
+from file import File
 from ATTR import ATTR
 
 

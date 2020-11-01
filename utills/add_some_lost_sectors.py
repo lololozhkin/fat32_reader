@@ -1,4 +1,4 @@
-from FatWorker import FatWorker
+from fat_worker import FatWorker
 import random
 import sys
 

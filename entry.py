@@ -1,6 +1,6 @@
 import struct
 from ATTR import ATTR
-from FileType import FileType
+from file_type import FileType
 
 
 class Entry:

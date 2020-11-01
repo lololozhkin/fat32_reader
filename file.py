@@ -1,4 +1,4 @@
-from FileType import FileType
+from file_type import FileType
 from ATTR import ATTR
 import struct
 

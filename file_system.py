@@ -1,4 +1,4 @@
-from FatWorker import FatWorker
+from fat_worker import FatWorker
 import os
 import colorama
 from collections import defaultdict
@@ -41,7 +41,7 @@ class FileSystem:
             dir_path, file = self._try_get_path_and_file(directory)
             cluster = file.first_cluster
         except ValueError:
-            raise FileNotFoundError("No such a directory")
+            raise FileNotFoundError("No such directory")
 
         files = list(self._fat_worker.get_all_files_in_dir(cluster))
         dir_path = '' if dir_path == '/' else dir_path
@@ -59,7 +59,7 @@ class FileSystem:
             self._current_directory_cluster = cluster
         except ValueError:
             raise FileNotFoundError(
-                f"there isn't such a directory {directory}")
+                f"there isn't such directory {directory}")
 
     def exit(self):
         self._fat_worker.close()
@@ -72,7 +72,7 @@ class FileSystem:
         try:
             _, file = self._try_get_path_and_file(img_path, True)
         except ValueError:
-            raise FileNotFoundError("No such a file on disk image")
+            raise FileNotFoundError("No such file on disk image")
 
         try:
             open(disk_path, 'wb').close()
@@ -80,7 +80,7 @@ class FileSystem:
                 for data in self._fat_worker.get_file_data(file):
                     f.write(data)
         except FileNotFoundError:
-            raise FileNotFoundError('No such a file on your computer')
+            raise FileNotFoundError('No such file on your computer')
         except PermissionError:
             raise PermissionError("Permission error")
 
@@ -188,7 +188,7 @@ class FileSystem:
                         cur_file = self._fat_worker.root_dir_file
                     break
             else:
-                raise ValueError("No such a directory")
+                raise ValueError("No such directory")
 
             if cur_dir_index == len(dirs_order):
                 if path.startswith('/'):

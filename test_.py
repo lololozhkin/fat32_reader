@@ -1,7 +1,7 @@
-from FatWorker import FatWorker
+from fat_worker import FatWorker
 from CLI import CLI
 from unittest import TestCase
-from FileSystem import FileSystem
+from file_system import FileSystem
 from download_samples import download_samples
 import shutil
 

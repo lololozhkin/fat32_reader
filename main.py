@@ -1,6 +1,6 @@
 import argparse
-from FatWorker import FatWorker
-from FileSystem import FileSystem
+from fat_worker import FatWorker
+from file_system import FileSystem
 from CLI import CLI
 import colorama
 from colorama import Fore, Style
