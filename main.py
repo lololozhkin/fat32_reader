@@ -11,10 +11,7 @@ def main():
     colorama.init()
     parser = Parsers.main_parser()
 
-    args = parser.parse_args(
-        "./test_files/bad_image.img -s".split())
-    # args = parser.parse_args('/dev/sdc1'.split())
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
     args.scan_intersection |= args.scan
     args.scan_lost |= args.scan
