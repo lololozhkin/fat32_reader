@@ -62,4 +62,29 @@ class Parsers:
 
         return parser
 
+    @staticmethod
+    def main_parser():
+        parser = argparse.ArgumentParser(
+            description="Program to view directories and files of FAT32 image"
+        )
+        parser.add_argument('file',
+                            help='Path to image')
 
+        parser.add_argument('-i', '--scan-intersection',
+                            action='store_true',
+                            help='scan for intersected cluster '
+                                 'chains before work')
+
+        parser.add_argument('-l', '--scan-lost',
+                            action='store_true',
+                            help='scan for lost clusters before work')
+
+        parser.add_argument('-s', '--scan',
+                            action='store_true',
+                            help='scan image for problems before work')
+
+        parser.add_argument('-r', '--resolve',
+                            action='store_true',
+                            help='resolve all solvable problems of image')
+
+        return parser
