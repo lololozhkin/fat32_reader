@@ -109,6 +109,16 @@ class CLI:
         if intersection:
             yield from self._scan_for_intersected_chains()
 
+    @staticmethod
+    def help(params=None):
+        ans = '\n'.join(['ls: shows directories and files',
+                         'pwd: prints current directory',
+                         'export: exports file from image to your computer',
+                         'cd: changes current directory',
+                         '',
+                         'for more information type command --help'])
+        return [ans]
+
     def _scan_for_lost_clusters(self):
         yield 'Scanning for lost clusters...'
         res = self.file_system.scan_lost_clusters()

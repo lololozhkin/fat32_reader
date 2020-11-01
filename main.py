@@ -1,4 +1,3 @@
-import argparse
 from fat_worker import FatWorker
 from file_system import FileSystem
 from CLI import CLI
@@ -38,6 +37,7 @@ def main():
         'pwd': cli.pwd,
         'ls': cli.ls,
         'export': cli.export,
+        'help': cli.help
     }
 
     while True:
