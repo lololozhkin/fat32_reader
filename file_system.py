@@ -75,10 +75,14 @@ class FileSystem:
             raise FileNotFoundError("No such file on disk image")
 
         try:
+            if os.path.isdir(disk_path):
+                disk_path = os.path.join(disk_path, file.name)
+
             open(disk_path, 'wb').close()
             with open(disk_path, 'wb') as f:
                 for data in self._fat_worker.get_file_data(file):
                     f.write(data)
+
         except FileNotFoundError:
             raise FileNotFoundError('No such file on your computer')
         except PermissionError:
