@@ -17,7 +17,7 @@ class Entry:
 
     def __str__(self):
         if self.is_long_entry:
-            return f'long entry, {self.long_entry_letters}'
+            return f'long entry, {self.long_entry_letters.decode("utf-16")}'
         else:
             return self.alias_name
 
@@ -52,7 +52,7 @@ class Entry:
             name = alias[:-3].rstrip(' ')
             if name in ('.', '..') or ext == '   ':
                 return name
-            return f'{name}.{ext}'
+            return f'{name}.{ext}'.rstrip(' ')
         else:
             raise ValueError("long directory entries doesn't have short name")
 
@@ -97,11 +97,3 @@ class Entry:
             raise ValueError("long entries doesn't have such a field")
 
         return struct.unpack("<I", self.entry[28:32])[0]
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()

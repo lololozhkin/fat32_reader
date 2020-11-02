@@ -92,11 +92,11 @@ class CLI:
             self.file_system.export(args.disk_path, args.img_path)
         except FileNotFoundError as e:
             if e.args[0].endswith('image'):
-                return [f"{self.err_color}there isn't such file on image "
+                return [f"{self.err_color}There isn't such file on image "
                         f"{self.reset_all}{args.img_path}"]
             else:
                 return [f"{self.err_color}"
-                        f"There isn't such file on your computer"
+                        f"There isn't such file on your computer "
                         f"{self.reset_all}{args.disk_path}"]
         except PermissionError as e:
             return [f"{self.err_color}Permission error{self.reset_all}"]
