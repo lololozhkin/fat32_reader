@@ -103,10 +103,20 @@ class CLI:
 
         return ["Done"]
 
-    def scan(self, intersection, lost):
-        if lost:
+    def scan(self, params=None):
+        parser = Parsers.scan_parser()
+
+        try:
+            args = parser.parse_args(params.split())
+        except SystemExit:
+            return []
+        if not (args.lost or args.all or args.intersection):
+            args.all = True
+
+        if args.lost or args.all:
             yield from self._scan_for_lost_clusters()
-        if intersection:
+            yield '\n'
+        if args.intersection or args.all:
             yield from self._scan_for_intersected_chains()
 
     @staticmethod
@@ -124,11 +134,9 @@ class CLI:
         res = self.file_system.scan_lost_clusters()
         yield 'Scan finished'
         yield res
-        yield '\n'
 
     def _scan_for_intersected_chains(self):
         yield 'Scanning for intersected chains...'
         res = self.file_system.scan_for_intersected_chains()
         yield 'Scan finished'
         yield res
-        yield '\n'

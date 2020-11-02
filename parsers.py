@@ -70,21 +70,26 @@ class Parsers:
         parser.add_argument('file',
                             help='Path to image')
 
-        parser.add_argument('-i', '--scan-intersection',
-                            action='store_true',
-                            help='scan for intersected cluster '
-                                 'chains before work')
+        return parser
 
-        parser.add_argument('-l', '--scan-lost',
-                            action='store_true',
-                            help='scan for lost clusters before work')
+    @staticmethod
+    def scan_parser():
+        parser = argparse.ArgumentParser(
+            prog='scan',
+            description='scanning disk for errors like intersected '
+                        'or lost cluster chains'
+        )
 
-        parser.add_argument('-s', '--scan',
+        parser.add_argument('-i', '--intersection',
                             action='store_true',
-                            help='scan image for problems before work')
+                            help='scan for intersected cluster')
 
-        parser.add_argument('-r', '--resolve',
+        parser.add_argument('-l', '--lost',
                             action='store_true',
-                            help='resolve all solvable problems of image')
+                            help='scan for lost clusters')
+
+        parser.add_argument('-a', '--all',
+                            action='store_true',
+                            help='scan image for all problems')
 
         return parser

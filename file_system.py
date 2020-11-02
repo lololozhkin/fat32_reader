@@ -65,9 +65,11 @@ class FileSystem:
         self._fat_worker.close()
 
     def export(self, disk_path, img_path):
-        disk_path = normalize_path(disk_path)
-        img_path = normalize_path(self._current_directory
-                                  + normalize_path(img_path))
+        cur_dir = self._current_directory \
+            if self._current_directory != '/' \
+            else ''
+
+        img_path = normalize_path(cur_dir + normalize_path(img_path))
 
         try:
             _, file = self._try_get_path_and_file(img_path, True)
@@ -100,9 +102,8 @@ class FileSystem:
         result = self._scan_for_lost_cluster_chains()
         if result is not None:
             frac = (len(result) / self._fat_worker.total_clusters) * 100
-            return 'some clusters are lost: \n' \
-                   + '\n'.join(f'{hex(x)} is lost' for x in result) \
-                   + f'\n\n{frac}% of sectors are lost'
+            return f'Some clusters are lost: \n\n' \
+                   f'{frac:.3f}% of sectors are lost'
         else:
             return 'Everything is ok'
 

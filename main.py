@@ -10,13 +10,9 @@ import readline
 def main():
     colorama.init()
     parser = Parsers.main_parser()
-
     args = parser.parse_args()
-
-    args.scan_intersection |= args.scan
-    args.scan_lost |= args.scan
-
     file = args.file
+
     try:
         fs = FileSystem(FatWorker(file))
     except PermissionError:
@@ -25,16 +21,14 @@ def main():
         return 0
 
     cli = CLI(fs)
-    if args.scan_intersection or args.scan_lost:
-        for ans in cli.scan(args.scan_intersection, args.scan_lost):
-            print(ans)
 
     utils = {
         'cd': cli.cd,
         'pwd': cli.pwd,
         'ls': cli.ls,
         'export': cli.export,
-        'help': cli.help
+        'help': cli.help,
+        'scan': cli.scan
     }
 
     while True:
