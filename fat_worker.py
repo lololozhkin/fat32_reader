@@ -151,6 +151,7 @@ class FatWorker:
         sector, offset = self.get_fat_sector_and_offset(cluster_num)
         self.image.seek(sector * self.bytes_per_sector + offset)
         self.image.write(value)
+        self.image.flush()
 
     def close(self):
         self.image.close()
