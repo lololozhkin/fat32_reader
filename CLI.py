@@ -135,9 +135,12 @@ class CLI:
         scan = self.file_system.scan_and_resolve_lost_clusters()
         yield 'Scan finished'
         try:
+            res = next(scan)
+            if 'Some clusters are lost' in res:
+                res = self.err_color + res + self.reset_all
+            yield res
             yield next(scan)
-            yield scan.send(resolve)
-            yield from scan
+            yield from scan.send(resolve)
         except StopIteration:
             pass
 
