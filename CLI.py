@@ -114,7 +114,7 @@ class CLI:
             args.all = True
 
         if args.lost or args.all:
-            yield from self._scan_for_lost_clusters()
+            yield from self._scan_for_lost_clusters(args.resolve)
             yield '\n'
         if args.intersection or args.all:
             yield from self._scan_for_intersected_chains()
@@ -125,15 +125,21 @@ class CLI:
                          'pwd: prints current directory',
                          'export: exports file from image to your computer',
                          'cd: changes current directory',
+                         'scan: scan disk for problems',
                          '',
                          'for more information type command --help'])
         return [ans]
 
-    def _scan_for_lost_clusters(self):
+    def _scan_for_lost_clusters(self, resolve=False):
         yield 'Scanning for lost clusters...'
-        res = self.file_system.scan_lost_clusters()
+        scan = self.file_system.scan_and_resolve_lost_clusters()
         yield 'Scan finished'
-        yield res
+        try:
+            yield next(scan)
+            yield scan.send(resolve)
+            yield from scan
+        except StopIteration:
+            pass
 
     def _scan_for_intersected_chains(self):
         yield 'Scanning for intersected chains...'

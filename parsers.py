@@ -92,4 +92,8 @@ class Parsers:
                             action='store_true',
                             help='scan image for all problems')
 
+        parser.add_argument('-r', '--resolve',
+                            action='store_true',
+                            help='resolve all errors occurred')
+
         return parser

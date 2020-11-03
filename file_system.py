@@ -98,14 +98,20 @@ class FileSystem:
         path = '' if path == '/' else path
         yield from self._walk(file.first_cluster, path)
 
-    def scan_lost_clusters(self):
-        result = self._scan_for_lost_cluster_chains()
-        if result is not None:
-            frac = (len(result) / self._fat_worker.total_clusters) * 100
-            return f'Some clusters are lost: \n\n' \
-                   f'{frac:.3f}% of sectors are lost'
+    def scan_and_resolve_lost_clusters(self):
+        lost_clusters = self._scan_for_lost_cluster_chains()
+        if lost_clusters is not None:
+            frac = (len(lost_clusters) / self._fat_worker.total_clusters) * 100
+            resolve = yield f'Some clusters are lost: \n\n' \
+                            f'{frac:.3f}% of sectors are lost'
+            if resolve:
+                yield 'Restore lost clusters...'
+                for cluster in lost_clusters:
+                    yield f'restoring cluster {hex(cluster)}'
+                    self._fat_worker.write_to_fat(cluster, b'\x00' * 4)
+                yield 'Done'
         else:
-            return 'Everything is ok'
+            res = yield 'Everything is ok'
 
     def scan_for_intersected_chains(self):
         graph = defaultdict(list)
