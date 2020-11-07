@@ -120,7 +120,9 @@ class FatWorker:
         while True:
             yield cur_cluster
             cur_cluster = self.get_next_cluster(cur_cluster)
-            if cur_cluster == self.EOC or cur_cluster >= self.EOF:
+            if (cur_cluster == self.EOC
+                    or cur_cluster >= self.EOF
+                    or cur_cluster > self.total_clusters):
                 break
 
     def get_all_sectors_of_file(self, first_cluster):
@@ -153,9 +155,6 @@ class FatWorker:
     @staticmethod
     def _generate_long_name(entries: list):
         name = b''.join(
-            reversed(list(
-                map(lambda entry: entry.long_entry_letters, entries)
-                )
-            )
+            reversed(list(entry.long_entry_letters for entry in entries))
         )
         return name.decode('utf-16')

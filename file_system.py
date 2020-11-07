@@ -149,18 +149,56 @@ class FileSystem:
                                                  depth + 1)
 
     def _scan_for_lost_cluster_chains(self):
-        true_non_free_clusters = set(
+        real_non_free_clusters = set(
             self._get_all_non_free_clusters())
-        fat_non_free_clusters = set(
-            self._fat_worker.get_non_free_fat_clusters())
 
-        if len(fat_non_free_clusters) > len(true_non_free_clusters):
-            return fat_non_free_clusters.difference(true_non_free_clusters)
+        fat_non_free_clusters = set()
+        fat_cluster_chains = self._get_cluster_chains_from_fat_table()
+        for chain in fat_cluster_chains:
+            fat_non_free_clusters.update(cluster for cluster in chain)
+
+        if len(fat_non_free_clusters) > len(real_non_free_clusters):
+            return fat_non_free_clusters.difference(real_non_free_clusters)
 
     def _get_all_non_free_clusters(self):
         all_files = self.walk('/')
         for file in all_files:
             yield from self._fat_worker.get_cluster_chain(file.first_cluster)
+
+    def _get_cluster_chains_from_fat_table(self):
+        top_sorted_clusters = self._get_top_sorted_clusters_from_fat_table()
+        used_clusters = set()
+        cluster_chains = []
+        for cluster in top_sorted_clusters:
+            if cluster in used_clusters:
+                continue
+
+            cluster_chain = []
+            for cluster_ in self._fat_worker.get_cluster_chain(cluster):
+                used_clusters.add(cluster_)
+                cluster_chain.append(cluster_)
+
+            cluster_chains.append(tuple(cluster_chain))
+
+        return cluster_chains
+
+    def _get_top_sorted_clusters_from_fat_table(self):
+        used_clusters = set()
+        top_sorted = []
+        for cluster in self._fat_worker.get_non_free_fat_clusters():
+            if cluster in used_clusters:
+                continue
+
+            chain_from_current_cluster = []
+            for cluster_ in self._fat_worker.get_cluster_chain(cluster):
+                if cluster_ in used_clusters:
+                    break
+                used_clusters.add(cluster_)
+                chain_from_current_cluster.append(cluster_)
+
+            top_sorted.extend(reversed(chain_from_current_cluster))
+
+        return reversed(top_sorted)
 
     def _try_get_path_and_file(self, path, is_file=False):
         if not path.startswith('/'):
