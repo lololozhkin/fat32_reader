@@ -11,7 +11,7 @@ class FatWorker:
     LAST_LONG_ENTRY_MASK = 0x40
 
     def __init__(self, path):
-        self.image = open(path, 'rb')
+        self.image = open(path, 'rb+')
 
         self.image.seek(11)
         self.bytes_per_sector = struct.unpack("<H", self.image.read(2))[0]
@@ -148,6 +148,20 @@ class FatWorker:
             else:
                 yield sector[:size]
                 break
+
+    def write_to_fat(self, cluster: int, value: int):
+        sector, offset = self.get_fat_sector_and_offset(cluster)
+        self.image.seek(sector * self.bytes_per_sector + offset)
+        self.image.write(value.to_bytes(4, 'little', signed=False))
+        self.image.flush()
+
+    def read_cluster(self, cluster):
+        sector = self.get_first_sector_of_cluster(cluster)
+        self.image.seek(sector * self.bytes_per_sector)
+
+        return self.image.read(
+            self.bytes_per_sector * self.sectors_per_cluster
+        )
 
     def close(self):
         self.image.close()

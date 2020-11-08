@@ -174,7 +174,7 @@ class TestCLI(TestCase):
         )
 
     def test_scan_NormalImage_WithoutLostSectors(self):
-        result = self.eng_fs.scan_lost_clusters()
+        result = self.eng_fs.scan_and_recover_lost_cluster_chains()
         self.assertEqual(result, 'Everything is ok')
 
     def test_scan_NormalImage_WithoutIntersectedSectors(self):
@@ -182,7 +182,7 @@ class TestCLI(TestCase):
         self.assertEqual(result, 'Everything is ok')
 
     def test_scan_NotNormalImage_WithLostSectors(self):
-        result = self.bad_fs.scan_lost_clusters()
+        result = self.bad_fs.scan_and_recover_lost_cluster_chains()
         self.assertNotEqual('Everything is ok', result)
         self.assertTrue('Some clusters are lost' in result)
 

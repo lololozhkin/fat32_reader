@@ -1,3 +1,4 @@
+import itertools
 from fat_worker import FatWorker
 import os
 import colorama
@@ -21,6 +22,31 @@ def normalize_path(path):
     if not normalized_path.startswith('/'):
         normalized_path = '/' + normalized_path
     return normalized_path
+
+
+def get_not_taken_index(directory):
+    existing_files = os.listdir(directory)
+    lost_files_dirs_indexes = []
+    for file in existing_files:
+        path = os.path.join(directory, file)
+
+        if (os.path.isdir(path)
+                and file.startswith('lost_files')
+                and file[len('lost_files'):].isdigit()):
+            lost_files_dirs_indexes.append(int(file[len('lost_files'):]))
+
+    if len(lost_files_dirs_indexes) > 0:
+        indexes = list(sorted(lost_files_dirs_indexes))
+        indexes.append(indexes[-1] + 2)
+        needed_ind = -1
+        for cur, nxt in zip(indexes[:-1], indexes[1:]):
+            if nxt - cur > 1:
+                needed_ind = cur + 1
+                break
+    else:
+        needed_ind = 0
+
+    return needed_ind
 
 
 class FileSystem:
@@ -98,12 +124,37 @@ class FileSystem:
         path = '' if path == '/' else path
         yield from self._walk(file.first_cluster, path)
 
-    def scan_lost_clusters(self):
+    def scan_and_recover_lost_cluster_chains(
+            self,
+            recover=False,
+            directory=''
+    ):
         result = self._scan_for_lost_cluster_chains()
         if result is not None:
-            frac = (len(result) / self._fat_worker.total_clusters) * 100
-            return f'Some clusters are lost: \n\n' \
-                   f'{frac:.3f}% of sectors are lost'
+            real_chains, fat_chains = result
+            real_non_free_clusters = set(
+                itertools.chain(chain_ for chain_ in real_chains)
+            )
+            fat_non_free_clusters = set(
+                itertools.chain(chain_ for chain_ in fat_chains)
+            )
+            lost_clusters = len(
+                fat_non_free_clusters.difference(real_non_free_clusters)
+            )
+
+            frac = (lost_clusters / self._fat_worker.total_clusters) * 100
+            yield f'Some clusters are lost: \n\n' \
+                  f'{frac:.3f}% of sectors are lost'
+
+            if recover:
+                yield f'Recovering lost files into {directory}...'
+                lost_chains = fat_chains.difference(real_chains)
+                self._recover_lost_files(
+                    lost_chains,
+                    real_non_free_clusters,
+                    directory
+                )
+                yield 'Recovering completed'
         else:
             return 'Everything is ok'
 
@@ -148,23 +199,38 @@ class FileSystem:
                                                  file.path,
                                                  depth + 1)
 
+    def _recover_lost_files(
+            self,
+            lost_cluster_chains: set,
+            not_lost_clusters: set,
+            directory='.'
+    ):
+        dir_index = get_not_taken_index(directory)
+        dir_name = 'lost_files' + dir_index if dir_index != 0 else ''
+        dir_path = os.path.join(directory, dir_name)
+
+        os.mkdir(dir_path)
+        for ind, chain in enumerate(lost_cluster_chains):
+            number = str(ind).rjust(5, '0')
+            file_name = f'file{number}'
+            with open(os.path.join(dir_path, file_name), 'wb') as f:
+                for cluster in chain:
+                    f.write(self._fat_worker.read_cluster(cluster))
+                    if cluster in not_lost_clusters:
+                        continue
+                    self._fat_worker.write_to_fat(cluster, 0)
+
     def _scan_for_lost_cluster_chains(self):
-        real_non_free_clusters = set(
-            self._get_all_non_free_clusters()
-        )
+        real_cluster_chains = set(self._get_all_cluster_chains())
+        fat_cluster_chains = set(self._get_cluster_chains_from_fat_table())
 
-        fat_non_free_clusters = set()
-        fat_cluster_chains = self._get_cluster_chains_from_fat_table()
-        for chain in fat_cluster_chains:
-            fat_non_free_clusters.update(cluster for cluster in chain)
+        if len(fat_cluster_chains) > len(real_cluster_chains):
+            return real_cluster_chains, fat_cluster_chains
 
-        if len(fat_non_free_clusters) > len(real_non_free_clusters):
-            return fat_non_free_clusters.difference(real_non_free_clusters)
-
-    def _get_all_non_free_clusters(self):
+    def _get_all_cluster_chains(self):
         all_files = self.walk('/')
         for file in all_files:
-            yield from self._fat_worker.get_cluster_chain(file.first_cluster)
+            yield tuple(self._fat_worker.get_cluster_chain(file.first_cluster))
 
     def _get_cluster_chains_from_fat_table(self):
         top_sorted_clusters = self._get_top_sorted_clusters_from_fat_table()

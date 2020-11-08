@@ -77,19 +77,26 @@ class Parsers:
         parser = argparse.ArgumentParser(
             prog='scan',
             description='scanning disk for errors like intersected '
-                        'or lost cluster chains'
+                        'or lost clusterchains'
         )
 
-        parser.add_argument('-i', '--intersection',
-                            action='store_true',
-                            help='scan for intersected cluster')
+        sub_parser = parser.add_subparsers(
+            help='choose type of errors to be scanned'
+        )
 
-        parser.add_argument('-l', '--lost',
-                            action='store_true',
-                            help='scan for lost clusters')
+        lost_parser = sub_parser.add_parser('lost',
+                                            help='scan for lost clusterchains')
+        lost_parser.add_argument('-d', '--dir',
+                                 type=str,
+                                 required=True,
+                                 help='choose directory to save lost files')
 
-        parser.add_argument('-a', '--all',
-                            action='store_true',
-                            help='scan image for all problems')
+        intersect_parser = sub_parser.add_parser('intersected',
+                                                 help='scan for intersected '
+                                                      'clusterchains')
+        intersect_parser.add_argument('-r', '--r',
+                                      action='store_true',
+                                      help='use this flag to resolve problems '
+                                           'with intersected clusterchains')
 
         return parser

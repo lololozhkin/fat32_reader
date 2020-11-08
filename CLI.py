@@ -106,18 +106,15 @@ class CLI:
     def scan(self, params=None):
         parser = Parsers.scan_parser()
 
+        if params == '':
+            return [parser.format_usage()]
+
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
             return []
-        if not (args.lost or args.all or args.intersection):
-            args.all = True
 
-        if args.lost or args.all:
-            yield from self._scan_for_lost_clusters()
-            yield '\n'
-        if args.intersection or args.all:
-            yield from self._scan_for_intersected_chains()
+        return []
 
     @staticmethod
     def help(params=None):
@@ -126,12 +123,12 @@ class CLI:
                          'export: exports file from image to your computer',
                          'cd: changes current directory',
                          '',
-                         'for more information type command --help'])
+                         'for more information type *command* --help'])
         return [ans]
 
     def _scan_for_lost_clusters(self):
         yield 'Scanning for lost clusters...'
-        res = self.file_system.scan_lost_clusters()
+        res = self.file_system.scan_and_recover_lost_cluster_chains()
         yield 'Scan finished'
         yield res
 
