@@ -150,7 +150,8 @@ class FileSystem:
 
     def _scan_for_lost_cluster_chains(self):
         real_non_free_clusters = set(
-            self._get_all_non_free_clusters())
+            self._get_all_non_free_clusters()
+        )
 
         fat_non_free_clusters = set()
         fat_cluster_chains = self._get_cluster_chains_from_fat_table()
@@ -216,7 +217,8 @@ class FileSystem:
         cur_file = None
         while True:
             files = self._fat_worker.get_all_files_in_dir(
-                cur_dir_first_cluster)
+                cur_dir_first_cluster
+            )
             for file in files:
                 legal_path = (file.is_directory
                               or (file.is_file
