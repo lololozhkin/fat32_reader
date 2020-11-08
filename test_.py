@@ -69,7 +69,7 @@ class TestCLI(TestCase):
     def test_CLI_HelpDoesntHaveOutput(self):
         self.assertEqual(self.eng_cli.ls('--help'), [])
         self.assertEqual(self.eng_cli.pwd('--help'), [])
-        self.assertEqual(list(self.eng_cli.scan('--help')), [])
+        self.assertEqual(list(self.eng_cli.scan('--help')), [''])
         self.assertEqual(self.eng_cli.cd('--help'), [])
         self.assertEqual(self.eng_cli.export('--help'), [])
 
@@ -175,14 +175,14 @@ class TestCLI(TestCase):
 
     def test_scan_NormalImage_WithoutLostSectors(self):
         result = self.eng_fs.scan_and_recover_lost_cluster_chains()
-        self.assertEqual(result, 'Everything is ok')
+        self.assertEqual(list(result), ['Everything is ok'])
 
     def test_scan_NormalImage_WithoutIntersectedSectors(self):
         result = self.eng_fs.scan_for_intersected_chains()
         self.assertEqual(result, 'Everything is ok')
 
     def test_scan_NotNormalImage_WithLostSectors(self):
-        result = self.bad_fs.scan_and_recover_lost_cluster_chains()
+        result = ''.join(self.bad_fs.scan_and_recover_lost_cluster_chains())
         self.assertNotEqual('Everything is ok', result)
         self.assertTrue('Some clusters are lost' in result)
 
