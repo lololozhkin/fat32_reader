@@ -133,10 +133,10 @@ class FileSystem:
         if result is not None:
             real_chains, fat_chains = result
             real_non_free_clusters = set(
-                itertools.chain(chain_ for chain_ in real_chains)
+                itertools.chain(*(chain_ for chain_ in real_chains))
             )
             fat_non_free_clusters = set(
-                itertools.chain(chain_ for chain_ in fat_chains)
+                itertools.chain(*(chain_ for chain_ in fat_chains))
             )
             lost_clusters = len(
                 fat_non_free_clusters.difference(real_non_free_clusters)
@@ -156,7 +156,8 @@ class FileSystem:
                 )
                 yield 'Recovering completed'
         else:
-            return 'Everything is ok'
+            yield 'Everything is ok'
+            return
 
     def scan_for_intersected_chains(self):
         graph = defaultdict(list)
@@ -206,7 +207,7 @@ class FileSystem:
             directory='.'
     ):
         dir_index = get_not_taken_index(directory)
-        dir_name = 'lost_files' + (dir_index if dir_index != 0 else '')
+        dir_name = 'lost_files' + str(dir_index)
         dir_path = os.path.join(directory, dir_name)
 
         os.mkdir(dir_path)
@@ -216,7 +217,7 @@ class FileSystem:
             with open(os.path.join(dir_path, file_name), 'wb') as f:
                 for cluster in chain:
                     f.write(self._fat_worker.read_cluster(cluster))
-                    if cluster in not_lost_clusters:
+                    if cluster in not_lost_clusters or cluster in (0, 1):
                         continue
                     self._fat_worker.write_to_fat(cluster, 0)
 
