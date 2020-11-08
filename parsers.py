@@ -81,14 +81,14 @@ class Parsers:
         )
 
         sub_parser = parser.add_subparsers(
+            dest='command_name',
             help='choose type of errors to be scanned'
         )
 
         lost_parser = sub_parser.add_parser('lost',
                                             help='scan for lost clusterchains')
-        lost_parser.add_argument('-d', '--dir',
+        lost_parser.add_argument('-d', '--directory',
                                  type=str,
-                                 required=True,
                                  help='choose directory to save lost files')
 
         intersect_parser = sub_parser.add_parser('intersected',

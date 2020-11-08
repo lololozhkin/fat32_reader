@@ -107,14 +107,23 @@ class CLI:
         parser = Parsers.scan_parser()
 
         if params == '':
-            return [parser.format_usage()]
+            yield parser.format_usage()
+            return
 
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            return []
+            yield ''
+            return
 
-        return []
+        if args.command_name == 'lost':
+            if args.directory is not None:
+                restore_args = {'restore': True, 'directory': args.directory}
+            else:
+                restore_args = {}
+            yield from self._scan_restore_lost_clusters(**restore_args)
+        else:
+            yield from self._scan_for_intersected_chains()
 
     @staticmethod
     def help(params=None):
@@ -126,11 +135,19 @@ class CLI:
                          'for more information type *command* --help'])
         return [ans]
 
-    def _scan_for_lost_clusters(self):
+    def _scan_restore_lost_clusters(self, restore=False, directory=None):
         yield 'Scanning for lost clusters...'
-        res = self.file_system.scan_and_recover_lost_cluster_chains()
+        res = self.file_system.scan_and_recover_lost_cluster_chains(
+            restore,
+            directory
+        )
+        frac = next(res)
         yield 'Scan finished'
-        yield res
+        yield frac
+        try:
+            yield from res
+        except StopIteration:
+            pass
 
     def _scan_for_intersected_chains(self):
         yield 'Scanning for intersected chains...'

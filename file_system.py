@@ -147,7 +147,7 @@ class FileSystem:
                   f'{frac:.3f}% of sectors are lost'
 
             if recover:
-                yield f'Recovering lost files into {directory}...'
+                yield f'Recovering lost files into {directory} ...'
                 lost_chains = fat_chains.difference(real_chains)
                 self._recover_lost_files(
                     lost_chains,
@@ -206,7 +206,7 @@ class FileSystem:
             directory='.'
     ):
         dir_index = get_not_taken_index(directory)
-        dir_name = 'lost_files' + dir_index if dir_index != 0 else ''
+        dir_name = 'lost_files' + (dir_index if dir_index != 0 else '')
         dir_path = os.path.join(directory, dir_name)
 
         os.mkdir(dir_path)
