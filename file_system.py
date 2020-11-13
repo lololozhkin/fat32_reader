@@ -85,7 +85,8 @@ class FileSystem:
             self._current_directory_cluster = cluster
         except ValueError:
             raise FileNotFoundError(
-                f"there isn't such directory {directory}")
+                f"there isn't such directory {directory}"
+            )
 
     def exit(self):
         self._fat_worker.close()
@@ -112,7 +113,7 @@ class FileSystem:
                     f.write(data)
 
         except FileNotFoundError:
-            raise FileNotFoundError('No such file on your computer')
+            raise FileNotFoundError('There is not such file on your computer')
         except PermissionError:
             raise PermissionError("Permission error")
 
@@ -122,8 +123,10 @@ class FileSystem:
     def get_file_data_by_path(self, file_path):
         try:
             _, file = self._try_get_path_and_file(file_path, is_file=True)
+            if not file.is_file:
+                raise ValueError
         except ValueError:
-            raise FileNotFoundError('No such file on image')
+            raise FileNotFoundError('There is not such file on image')
 
         yield from file.data()
 
