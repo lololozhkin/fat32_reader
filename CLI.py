@@ -1,12 +1,16 @@
+import sys
+
 from file_system import FileSystem
 from colorama import Fore, Style
 from parsers import Parsers
 
 
 class CLI:
-    def __init__(self, file_system: FileSystem, testing=False):
+    def __init__(self, file_system: FileSystem, testing=False, out=sys.stdout):
         self.file_system = file_system
         self._testing = testing
+        self.out = out
+
 
     @property
     def dir_color(self):
@@ -30,14 +34,17 @@ class CLI:
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            return []
+            return
 
         try:
             files = self.file_system.ls(args.path)
         except FileNotFoundError as e:
-            return [f'{self.err_color}No such directory {args.path}']
+            print(
+                f'{self.err_color}No such directory {args.path}',
+                file=self.out
+            )
+            return
 
-        response = []
         for file in files:
             if file.name.startswith('.') and not args.all:
                 continue
@@ -49,9 +56,8 @@ class CLI:
             elif file.is_file:
                 cur_response += f'{self.file_color}{file.name}'
             cur_response += self.reset_all
-            response.append(cur_response)
 
-        return response
+            print(cur_response, file=self.out)
 
     def pwd(self, params=None):
         parser = Parsers.pwd_parser()
@@ -59,26 +65,26 @@ class CLI:
             try:
                 args = parser.parse_args(params.split())
             except SystemExit:
-                return []
+                return
 
         current_dir = self.file_system.current_dir
-        return [f'{self.dir_color}{current_dir}{self.reset_all}']
+        print(f'{self.dir_color}{current_dir}{self.reset_all}', file=self.out)
 
     def cd(self, params=None):
         parser = Parsers.cd_parser()
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            return []
+            return
 
         directory = args.path
         try:
             self.file_system.cd(directory)
         except FileNotFoundError:
-            return [
-                f"{self.err_color}There isn't such directory{self.reset_all}"
-            ]
-        return []
+            print(
+                f"{self.err_color}There isn't such directory{self.reset_all}",
+                file=self.out
+            )
 
     def export(self, params=None):
         parser = Parsers.export_parser()
@@ -86,34 +92,44 @@ class CLI:
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            return []
+            return
 
         try:
             self.file_system.export(args.disk_path, args.img_path)
         except FileNotFoundError as e:
             if e.args[0].endswith('image'):
-                return [f"{self.err_color}There isn't such file on image "
-                        f"{self.reset_all}{args.img_path}"]
+                print(
+                    f"{self.err_color}There isn't such file on image "
+                    f"{self.reset_all}{args.img_path}",
+                    file=self.out
+                )
             else:
-                return [f"{self.err_color}"
-                        f"There isn't such file on your computer "
-                        f"{self.reset_all}{args.disk_path}"]
+                print(
+                    f"{self.err_color}"
+                    f"There isn't such file on your computer "
+                    f"{self.reset_all}{args.disk_path}",
+                    file=self.out
+                )
+            return
         except PermissionError as e:
-            return [f"{self.err_color}Permission error{self.reset_all}"]
+            print(
+                f"{self.err_color}Permission error{self.reset_all}",
+                file=self.out
+            )
+            return
 
-        return ["Done"]
+        print("Done", file=self.out)
 
     def scan(self, params=None):
         parser = Parsers.scan_parser()
 
         if params == '':
-            yield parser.format_usage()
+            print(parser.format_usage(), file=self.out)
             return
 
         try:
             args = parser.parse_args(params.split())
         except SystemExit:
-            yield ''
             return
 
         if args.command_name == 'lost':
@@ -121,19 +137,24 @@ class CLI:
                 restore_args = {'restore': True, 'directory': args.directory}
             else:
                 restore_args = {}
-            yield from self._scan_restore_lost_clusters(**restore_args)
-        else:
-            yield from self._scan_for_intersected_chains()
 
-    @staticmethod
-    def help(params=None):
+            for res in self._scan_restore_lost_clusters(**restore_args):
+                print(res, file=self.out)
+        else:
+            for res in self._scan_for_intersected_chains():
+                print(res, file=self.out)
+
+    def help(self, params=None):
         ans = '\n'.join(['ls: shows directories and files',
                          'pwd: prints current directory',
                          'export: exports file from image to your computer',
                          'cd: changes current directory',
                          '',
                          'for more information type *command* --help'])
-        return [ans]
+        print(ans, file=self.out)
+
+    def cat(self, params=None):
+        pass
 
     def _scan_restore_lost_clusters(self, restore=False, directory=None):
         yield 'Scanning for lost clusters...'

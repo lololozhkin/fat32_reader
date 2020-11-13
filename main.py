@@ -10,8 +10,8 @@ import readline
 def main():
     colorama.init()
     parser = Parsers.main_parser()
-    # args = parser.parse_args()
-    args = parser.parse_args('test_files/b_copy.img'.split())
+    args = parser.parse_args()
+    # args = parser.parse_args('test_files/b_copy.img'.split())
     file = args.file
 
     try:
@@ -54,10 +54,7 @@ def main():
             break
 
         try:
-            res = utils[util](params)
-            for item in res:
-                print(item)
-
+            utils[util](params)
         except KeyError:
             print(f"{Fore.RED}Command not found '{util}'{Style.RESET_ALL}")
         except OSError as e:
