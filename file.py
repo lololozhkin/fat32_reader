@@ -34,7 +34,7 @@ class File:
                f"{self.name}"
 
     def data(self):
-        yield from self._fat_worker.get_all_sectors_of_file(self.first_cluster)
+        yield from self._fat_worker.get_file_data(self)
 
     @property
     def name(self):

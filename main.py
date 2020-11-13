@@ -30,7 +30,8 @@ def main():
         'export': cli.export,
         'help': cli.help,
         'scan': cli.scan,
-        'cat': cli.cat
+        'cat': cli.cat,
+        'xxd': cli.xxd
     }
 
     while True:

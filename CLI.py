@@ -5,6 +5,23 @@ from colorama import Fore, Style
 from parsers import Parsers
 
 
+def format_block(block_num, data):
+    ans = hex(block_num * 16)[2:].rjust(8, '0') + ': '
+    double_bytes = []
+    for j in range((len(data) + 1) // 2):
+        pair = ''.join(hex(b)[2:].rjust(2, '0')
+                       for b in data[2 * j:2 * (j + 1)])
+        double_bytes.append(pair)
+    ans += ' '.join(double_bytes)
+
+    asci_presentation = ''.join(chr(b) if 0x20 <= b <= 0x7d else '.'
+                                for b in data)
+    ans = ans.ljust(49, ' ')
+    ans += ' '
+    ans += asci_presentation
+    return ans
+
+
 class CLI:
     def __init__(self, file_system: FileSystem, testing=False, out=sys.stdout):
         self.file_system = file_system
@@ -148,6 +165,9 @@ class CLI:
                          'pwd: prints current directory',
                          'export: exports file from image to your computer',
                          'cd: changes current directory',
+                         'scan: scan image for fat32 problems',
+                         'cat: show file data in text format',
+                         'xxd: show file data in binary format'
                          '',
                          'for more information type *command* --help'])
         print(ans, file=self.out)
@@ -160,10 +180,36 @@ class CLI:
             return
 
         try:
-            for data in self.file_system.cat(args.path):
-                data: bytes
+            for data in self.file_system.get_file_data_by_path(args.path):
                 print(data.decode(errors='ignore'), file=self.out, end='')
             print(file=self.out)
+        except FileNotFoundError:
+            print(f"{self.err_color}"
+                  f"There isn't such file on image "
+                  f"{self.reset_all}{args.path}",
+                  file=self.out)
+            return
+
+    def xxd(self, params=None):
+        parser = Parsers.xxd_parser()
+        try:
+            args = parser.parse_args(params.split())
+        except SystemExit:
+            return
+
+        try:
+            buf = b''
+            total_blocks = 0
+            for data in self.file_system.get_file_data_by_path(args.path):
+                buf += data
+                cur_bytes = buf[:(len(buf) // 16) * 16]
+                buf = buf[len(cur_bytes):]
+                for i in range(len(cur_bytes) // 16):
+                    block = cur_bytes[i * 16:(i + 1) * 16]
+                    print(format_block(total_blocks, block), file=self.out)
+                    total_blocks += 1
+            if buf:
+                print(format_block(total_blocks, buf), file=self.out)
         except FileNotFoundError:
             print(f"{self.err_color}"
                   f"There isn't such file on your computer "
