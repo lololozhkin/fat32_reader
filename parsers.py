@@ -100,3 +100,14 @@ class Parsers:
                                            'with intersected clusterchains')
 
         return parser
+
+    @staticmethod
+    def cat_parser():
+        parser = argparse.ArgumentParser(
+            description='Shows file to standart output'
+        )
+        parser.add_argument('path',
+                            type=str,
+                            help='Path to file to show')
+
+        return parser

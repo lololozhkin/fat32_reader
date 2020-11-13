@@ -29,7 +29,8 @@ def main():
         'ls': cli.ls,
         'export': cli.export,
         'help': cli.help,
-        'scan': cli.scan
+        'scan': cli.scan,
+        'cat': cli.cat
     }
 
     while True:

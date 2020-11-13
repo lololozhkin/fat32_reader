@@ -154,7 +154,16 @@ class CLI:
         print(ans, file=self.out)
 
     def cat(self, params=None):
-        pass
+        parser = Parsers.cat_parser()
+        try:
+            args = parser.parse_args(params.split())
+        except SystemExit:
+            return
+
+        for data in self.file_system.cat(args.path):
+            data: bytes
+            print(data.decode(errors='ignore'), file=self.out, end='')
+        print(file=self.out)
 
     def _scan_restore_lost_clusters(self, restore=False, directory=None):
         yield 'Scanning for lost clusters...'

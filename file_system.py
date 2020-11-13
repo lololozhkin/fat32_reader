@@ -119,6 +119,16 @@ class FileSystem:
     def tree(self, params=None):
         pass
 
+    def cat(self, file_path):
+        try:
+            _, file = self._try_get_path_and_file(file_path, is_file=True)
+        except ValueError:
+            raise FileNotFoundError('No such file on image')
+
+        for data in file.data():
+            yield data
+
+
     def walk(self, start_path='/'):
         path, file = self._try_get_path_and_file(start_path)
         path = '' if path == '/' else path
