@@ -11,7 +11,6 @@ class CLI:
         self._testing = testing
         self.out = out
 
-
     @property
     def dir_color(self):
         return '' if self._testing else Fore.LIGHTCYAN_EX
@@ -160,10 +159,17 @@ class CLI:
         except SystemExit:
             return
 
-        for data in self.file_system.cat(args.path):
-            data: bytes
-            print(data.decode(errors='ignore'), file=self.out, end='')
-        print(file=self.out)
+        try:
+            for data in self.file_system.cat(args.path):
+                data: bytes
+                print(data.decode(errors='ignore'), file=self.out, end='')
+            print(file=self.out)
+        except FileNotFoundError:
+            print(f"{self.err_color}"
+                  f"There isn't such file on your computer "
+                  f"{self.reset_all}{args.path}",
+                  file=self.out)
+            return
 
     def _scan_restore_lost_clusters(self, restore=False, directory=None):
         yield 'Scanning for lost clusters...'
