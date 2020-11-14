@@ -54,6 +54,8 @@ def safe_mkdir(path):
         os.mkdir(path)
     except FileExistsError:
         pass
+    except FileNotFoundError:
+        raise FileNotFoundError('Directory not found')
 
 
 class FileSystem:

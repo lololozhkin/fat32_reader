@@ -115,14 +115,15 @@ class CLI:
         except FileNotFoundError as e:
             if e.args[0].endswith('image'):
                 print(
-                    f"{self.err_color}There isn't such file on image "
+                    f"{self.err_color}There isn't such file or directory "
+                    f"on image "
                     f"{self.reset_all}{args.img_path}",
                     file=self.out
                 )
             else:
                 print(
                     f"{self.err_color}"
-                    f"There isn't such file on your computer "
+                    f"There isn't such file or directory on your computer "
                     f"{self.reset_all}{args.disk_path}",
                     file=self.out
                 )
