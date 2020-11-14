@@ -10,8 +10,8 @@ import readline
 def main():
     colorama.init()
     parser = Parsers.main_parser()
-    args = parser.parse_args()
-    # args = parser.parse_args('test_files/b_copy.img'.split())
+    # args = parser.parse_args()
+    args = parser.parse_args('test_files/simple_image_only_eng_letters.img'.split())
     file = args.file
 
     try:

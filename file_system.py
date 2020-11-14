@@ -49,6 +49,13 @@ def get_not_taken_index(directory):
     return needed_ind
 
 
+def safe_mkdir(path):
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+
+
 class FileSystem:
     def __init__(self, fat_worker: FatWorker):
         self._fat_worker = fat_worker
@@ -99,9 +106,25 @@ class FileSystem:
         img_path = normalize_path(cur_dir + normalize_path(img_path))
 
         try:
-            _, file = self._try_get_path_and_file(img_path, True)
+            path, file = self._try_get_path_and_file(img_path, True)
         except ValueError:
             raise FileNotFoundError("No such file on disk image")
+
+        if file.is_directory:
+            disk_path = os.path.join(disk_path, file.name)
+            safe_mkdir(disk_path)
+
+            for file in self.walk(path):
+                if file.is_file:
+                    disk_file_path = disk_path + file.path[len(path):]
+                    open(disk_file_path, 'wb').close()
+                    with open(disk_file_path, 'wb') as f:
+                        for data in file.data():
+                            f.write(data)
+                elif file.is_directory:
+                    disk_dir_path = disk_path + file.path[len(path):]
+                    safe_mkdir(disk_dir_path)
+            return
 
         try:
             if os.path.isdir(disk_path):
@@ -109,16 +132,13 @@ class FileSystem:
 
             open(disk_path, 'wb').close()
             with open(disk_path, 'wb') as f:
-                for data in self._fat_worker.get_file_data(file):
+                for data in file.data():
                     f.write(data)
 
         except FileNotFoundError:
             raise FileNotFoundError('There is not such file on your computer')
         except PermissionError:
             raise PermissionError("Permission error")
-
-    def tree(self, params=None):
-        pass
 
     def get_file_data_by_path(self, file_path):
         try:
