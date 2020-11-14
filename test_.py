@@ -2,7 +2,7 @@ import io
 
 from entry import Entry
 from fat_worker import FatWorker
-from CLI import CLI
+from CLI import CLI, format_block
 from unittest import TestCase
 from file_system import FileSystem
 from download_samples import download_samples
@@ -206,6 +206,57 @@ class TestCLI(TestCase):
             self.out.getvalue(),
             "There isn't such file on your computer"
             " non_existing_directory/file.aba\n"
+        )
+
+    def test_cat_WithExistingFile(self):
+        self.eng_cli.cat('file0')
+        out = self.out.getvalue()
+        self.assertEqual(
+            out,
+            'python is the best programming language ever\n\n'
+        )
+
+    def test_cat_WithNonExistingFile(self):
+        self.eng_cli.cat('aa')
+        out = self.out.getvalue()
+        self.assertEqual(out, "There isn't such file on image aa\n")
+
+    def test_cat_WithDirectory(self):
+        self.eng_cli.cat('dir0')
+        out = self.out.getvalue()
+        self.assertEqual(out, "There isn't such file on image dir0\n")
+
+    def test_xxd_FormatBlock_SimpleSample(self):
+        data = b'abcdefghijklmnop'
+        formatted_data = format_block(0, data)
+        num = '00000000'
+        byte_presentation = '6162 6364 6566 6768 696a 6b6c 6d6e 6f70'
+        ascii_presentation = 'abcdefghijklmnop'
+        self.assertEqual(
+            formatted_data,
+            f'{num}: {byte_presentation} {ascii_presentation}'
+        )
+
+    def test_xxd_FormatBlock_LessBytes(self):
+        data = b'abc'
+        formatted_data = format_block(0, data)
+        num = '00000000'
+        byte_presentation = '6162 63'.ljust(39, ' ')
+        ascii_presentation = 'abc'
+        self.assertEqual(
+            formatted_data,
+            f'{num}: {byte_presentation} {ascii_presentation}'
+        )
+
+    def test_xxd_XxdSimpleTest(self):
+        self.eng_cli.xxd('file1')
+        out = self.out.getvalue()
+        num = '00000000'
+        bytes_presentation = '736f 6d65 5f74 6578 740a'.ljust(39, ' ')
+        ascii_presentation = 'some_text.'
+        self.assertEqual(
+            out,
+            f'{num}: {bytes_presentation} {ascii_presentation}\n'
         )
 
     def test_scan_NormalImage_WithoutLostClusters(self):
