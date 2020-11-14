@@ -113,7 +113,8 @@ class FileSystem:
             raise FileNotFoundError("No such file on disk image")
 
         if file.is_directory:
-            disk_path = os.path.join(disk_path, file.name)
+            name = file.name if file.name != '/' else 'fat_image_files/'
+            disk_path = os.path.join(disk_path, name)
             safe_mkdir(disk_path)
 
             for file in self.walk(path):

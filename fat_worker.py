@@ -37,7 +37,8 @@ class FatWorker:
     def root_dir_file(self):
         return File(name='/',
                     attributes=ATTR.DIRECTORY,
-                    first_cluster=self.root_cluster
+                    first_cluster=self.root_cluster,
+                    path='/'
                     )
 
     @property
