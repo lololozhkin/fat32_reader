@@ -1,4 +1,5 @@
 import sys
+import re
 
 from file_system import FileSystem
 from colorama import Fore, Style
@@ -20,6 +21,15 @@ def format_block(block_num, data):
     ans += ' '
     ans += asci_presentation
     return ans
+
+
+split_regexp = re.compile(r'\'[^\']*\'|\"[^\"]*\"|[^ ]+')
+
+
+def split_with_quotes(params: str):
+    params = re.findall(split_regexp, params)
+    s = ''
+    return [param.strip('\'\"') for param in params]
 
 
 class CLI:
@@ -46,9 +56,9 @@ class CLI:
 
     def ls(self, params=None):
         parser = Parsers.ls_parser()
-
+        params = split_with_quotes(params)
         try:
-            args = parser.parse_args(params.split())
+            args = parser.parse_args(params)
         except SystemExit:
             return
 
@@ -79,7 +89,8 @@ class CLI:
         parser = Parsers.pwd_parser()
         if params is not None:
             try:
-                args = parser.parse_args(params.split())
+                params = split_with_quotes(params)
+                args = parser.parse_args(params)
             except SystemExit:
                 return
 
@@ -89,7 +100,8 @@ class CLI:
     def cd(self, params=None):
         parser = Parsers.cd_parser()
         try:
-            args = parser.parse_args(params.split())
+            params = split_with_quotes(params)
+            args = parser.parse_args(params)
         except SystemExit:
             return
 
@@ -106,7 +118,8 @@ class CLI:
         parser = Parsers.export_parser()
 
         try:
-            args = parser.parse_args(params.split())
+            params = split_with_quotes(params)
+            args = parser.parse_args(params)
         except SystemExit:
             return
 
@@ -145,7 +158,8 @@ class CLI:
             return
 
         try:
-            args = parser.parse_args(params.split())
+            params = split_with_quotes(params)
+            args = parser.parse_args(params)
         except SystemExit:
             return
 
@@ -176,7 +190,8 @@ class CLI:
     def cat(self, params=None):
         parser = Parsers.cat_parser()
         try:
-            args = parser.parse_args(params.split())
+            params = split_with_quotes(params)
+            args = parser.parse_args(params)
         except SystemExit:
             return
 
@@ -194,7 +209,8 @@ class CLI:
     def xxd(self, params=None):
         parser = Parsers.xxd_parser()
         try:
-            args = parser.parse_args(params.split())
+            params = split_with_quotes(params)
+            args = parser.parse_args(params)
         except SystemExit:
             return
 
@@ -213,7 +229,7 @@ class CLI:
                 print(format_block(total_blocks, buf), file=self.out)
         except FileNotFoundError:
             print(f"{self.err_color}"
-                  f"There isn't such file on your computer "
+                  f"There isn't such file on image "
                   f"{self.reset_all}{args.path}",
                   file=self.out)
             return

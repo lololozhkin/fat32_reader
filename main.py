@@ -1,6 +1,6 @@
 from fat_worker import FatWorker
 from file_system import FileSystem
-from CLI import CLI
+from CLI import CLI, split_with_quotes
 import colorama
 from colorama import Fore, Style
 from parsers import Parsers
@@ -46,7 +46,7 @@ def main():
                   f'at position {e.start}.')
             continue
         command = command.replace('\n', '')
-        util = command.split()[0]
+        util = split_with_quotes(command)[0]
         params = command[len(util) + 1:]
 
         if util == 'exit':

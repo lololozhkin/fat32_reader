@@ -34,15 +34,20 @@ class TestCLI(TestCase):
         )
         self.rus_cli = CLI(self.rus_fs, True, self.out)
 
-        self.bad_fs = FileSystem(
+        self.lost_fs = FileSystem(
             FatWorker('test_files/beated_image.img')
         )
-        self.bad_cli = CLI(self.bad_fs, True, self.out)
+        self.lost_cli = CLI(self.lost_fs, True, self.out)
+
+        self.intersected_fs = FileSystem(
+            FatWorker('test_files/intersected_chains.img')
+        )
+        self.intersected_cli = CLI(self.intersected_fs, True, self.out)
 
     def tearDown(self):
         self.eng_fs.exit()
         self.rus_fs.exit()
-        self.bad_fs.exit()
+        self.lost_fs.exit()
 
     def test_ls_WithoutParams(self):
         self.eng_cli.ls('')
@@ -209,6 +214,13 @@ class TestCLI(TestCase):
             " non_existing_directory/file.aba\n"
         )
 
+    def test_export_WithDirectorySource(self):
+        self.eng_cli.export('dir0 test_files')
+        self.assertTrue(os.path.isdir('test_files/dir0'))
+        self.assertTrue(os.path.isdir('test_files/dir0/dir1'))
+        self.assertTrue(os.path.isfile('test_files/dir0/some_script.py'))
+        shutil.rmtree('test_files/dir0')
+
     def test_cat_WithExistingFile(self):
         self.eng_cli.cat('file0')
         out = self.out.getvalue()
@@ -260,6 +272,14 @@ class TestCLI(TestCase):
             f'{num}: {bytes_presentation} {ascii_presentation}\n'
         )
 
+    def test_xxd_NonExistingFile(self):
+        self.eng_cli.xxd('non_existing_file')
+        out = self.out.getvalue().strip()
+        self.assertEqual(
+            out,
+            "There isn't such file on image non_existing_file"
+        )
+
     def test_scan_NormalImage_WithoutLostClusters(self):
         self.eng_cli.scan('lost')
         result = self.out.getvalue().split('\n')[-2]
@@ -271,15 +291,42 @@ class TestCLI(TestCase):
         self.assertEqual(result, 'Everything is ok')
 
     def test_scan_NotNormalImage_WithLostSectors(self):
-        self.bad_cli.scan('lost')
+        self.lost_cli.scan('lost')
         result = self.out.getvalue()
         self.assertNotEqual('Everything is ok', result)
         self.assertTrue('Some clusters are lost' in result)
 
     def test_scan_NotNormalImage_WithLostSectorsButWithoutIntersections(self):
-        self.bad_cli.scan('intersected')
+        self.lost_cli.scan('intersected')
         result = self.out.getvalue().split('\n')[-2]
         self.assertEqual(result, 'Everything is ok')
+
+    def test_scan_WithIntersectedChains(self):
+        self.intersected_cli.scan('intersected')
+        result = self.out.getvalue().split('\n')[-2]
+        self.assertEqual(result, 'Some cluster-chains are intersected')
+
+    def test_scan_ResolvingIntersections(self):
+        open('test_files/intersected_copy.img', 'wb').close()
+        with open('test_files/intersected_copy.img', 'wb') as f:
+            with open('test_files/intersected_chains.img', 'rb') as src:
+                blk_sz = 2**16
+                while True:
+                    data = src.read(blk_sz)
+                    if not data:
+                        break
+                    f.write(data)
+
+        fs = FileSystem(
+            FatWorker('test_files/intersected_copy.img')
+        )
+        cli = CLI(fs, True, self.out)
+        cli.scan('intersected --resolve')
+        cli.scan('intersected')
+        result = self.out.getvalue()
+        self.assertTrue('Some cluster-chains are intersected' in result)
+        self.assertTrue('Everything is ok' == result.split('\n')[-2])
+        os.remove('test_files/intersected_copy.img')
 
 
 class InnerTests(TestCase):
