@@ -71,6 +71,7 @@ class CLI:
             )
             return
 
+        response = []
         for file in files:
             if file.name.startswith('.') and not args.all:
                 continue
@@ -82,6 +83,7 @@ class CLI:
             elif file.is_file:
                 cur_response += f'{self.file_color}{file.name}'
             cur_response += self.reset_all
+            response.append(cur_response)
 
             print(cur_response, file=self.out)
 

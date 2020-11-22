@@ -111,6 +111,10 @@ class Parsers:
                             type=str,
                             help='Path to file to show')
 
+        parser.add_argument('-r', '--resolve',
+                            action='store_true',
+                            help='resolve all errors occurred')
+
         return parser
 
     @staticmethod
