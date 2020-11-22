@@ -72,7 +72,7 @@ class FatWorker:
 
     def get_all_entries_of_dir(self, dir_first_cluster):
         cur_cluster = dir_first_cluster
-        while cur_cluster != FatWorker.EOC and cur_cluster < FatWorker.EOF:
+        while FatWorker.EOC != cur_cluster < FatWorker.EOF:
             for i in range(
                     (self.sectors_per_cluster * self.bytes_per_sector) >> 5):
                 entry = self.get_entry_for_dir(cur_cluster, i)
@@ -156,6 +156,13 @@ class FatWorker:
         self.image.write(value.to_bytes(4, 'little', signed=False))
         self.image.flush()
 
+    def write_data_to_cluster(self, cluster: int, data: bytes):
+        if len(data) > self.bytes_per_sector * self.sectors_per_cluster:
+            raise ValueError('to big data for one cluster')
+        sector = self.get_first_sector_of_cluster(cluster)
+        self.image.seek(sector * self.bytes_per_sector)
+        self.image.write(data)
+
     def read_cluster(self, cluster):
         sector = self.get_first_sector_of_cluster(cluster)
         self.image.seek(sector * self.bytes_per_sector)
@@ -167,9 +174,14 @@ class FatWorker:
     def close(self):
         self.image.close()
 
+    def get_free_clusters(self):
+        for cluster in range(2, self.total_clusters):
+            if self.get_next_cluster(cluster) == 0:
+                yield cluster
+
     @staticmethod
     def _generate_long_name(entries: list):
         name = b''.join(
             reversed(list(entry.long_entry_letters for entry in entries))
         )
-        return name.decode('utf-16')
+        return name.decode('utf-16', errors='replace')

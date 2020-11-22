@@ -13,11 +13,15 @@ class Entry:
 
         high_word = struct.unpack("<H", entry[20:22])[0]
         low_word = struct.unpack("<H", entry[26:28])[0]
-        self.first_cluster = (high_word << 2) + low_word
+        self.first_cluster = (high_word << 16) | low_word
 
     def __str__(self):
         if self.is_long_entry:
-            return f'long entry, {self.long_entry_letters.decode("utf-16")}'
+            decoded_letters = self.long_entry_letters.decode(
+                "utf-16",
+                errors="replace"
+            )
+            return f'long entry, {decoded_letters}'
         else:
             return self.alias_name
 
@@ -47,7 +51,7 @@ class Entry:
     @property
     def alias_name(self):
         if not self.is_long_entry:
-            alias = self.entry[:11].decode(encoding='ascii')
+            alias = self.entry[:11].decode(encoding='ascii', errors='replace')
             ext = alias[-3:]
             name = alias[:-3].rstrip(' ')
             if name in ('.', '..') or ext == '   ':

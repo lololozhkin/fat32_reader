@@ -158,7 +158,7 @@ class CLI:
             for res in self._scan_restore_lost_clusters(**restore_args):
                 print(res, file=self.out)
         else:
-            for res in self._scan_for_intersected_chains():
+            for res in self._scan_resolve_intersected_chains(args.resolve):
                 print(res, file=self.out)
 
     def help(self, params=None):
@@ -182,7 +182,7 @@ class CLI:
 
         try:
             for data in self.file_system.get_file_data_by_path(args.path):
-                print(data.decode(errors='ignore'), file=self.out, end='')
+                print(data.decode(errors='replace'), file=self.out, end='')
             print(file=self.out)
         except FileNotFoundError:
             print(f"{self.err_color}"
@@ -232,8 +232,13 @@ class CLI:
         except StopIteration:
             pass
 
-    def _scan_for_intersected_chains(self):
+    def _scan_resolve_intersected_chains(self, resolve=False):
         yield 'Scanning for intersected chains...'
-        res = self.file_system.scan_for_intersected_chains()
+        res = self.file_system.scan_and_resolve_intersected_chains(resolve)
+        next_out = next(res)
         yield 'Scan finished'
-        yield res
+        yield next_out
+        try:
+            yield from res
+        except StopIteration:
+            pass

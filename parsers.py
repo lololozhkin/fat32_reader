@@ -94,7 +94,7 @@ class Parsers:
         intersect_parser = sub_parser.add_parser('intersected',
                                                  help='scan for intersected '
                                                       'clusterchains')
-        intersect_parser.add_argument('-r', '--r',
+        intersect_parser.add_argument('-r', '--resolve',
                                       action='store_true',
                                       help='use this flag to resolve problems '
                                            'with intersected clusterchains')

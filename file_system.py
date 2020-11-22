@@ -1,8 +1,9 @@
 import itertools
-from fat_worker import FatWorker
 import os
 import colorama
-from collections import defaultdict
+from typing import Union, Iterable
+from fat_worker import FatWorker
+from file import File
 
 
 def normalize_path(path):
@@ -47,15 +48,6 @@ def get_not_taken_index(directory):
         needed_ind = 0
 
     return needed_ind
-
-
-def safe_mkdir(path):
-    try:
-        os.mkdir(path)
-    except FileExistsError:
-        pass
-    except FileNotFoundError:
-        raise FileNotFoundError('Directory not found')
 
 
 class FileSystem:
@@ -115,7 +107,7 @@ class FileSystem:
         if file.is_directory:
             name = file.name if file.name != '/' else 'fat_image_files/'
             disk_path = os.path.join(disk_path, name)
-            safe_mkdir(disk_path)
+            os.makedirs(disk_path, exist_ok=True)
 
             for file in self.walk(path):
                 if file.is_file:
@@ -126,7 +118,7 @@ class FileSystem:
                             f.write(data)
                 elif file.is_directory:
                     disk_dir_path = disk_path + file.path[len(path):]
-                    safe_mkdir(disk_dir_path)
+                    os.makedirs(disk_dir_path, exist_ok=True)
             return
 
         try:
@@ -153,7 +145,7 @@ class FileSystem:
 
         yield from file.data()
 
-    def walk(self, start_path='/'):
+    def walk(self, start_path='/') -> Iterable[Union[File, int]]:
         path, file = self._try_get_path_and_file(start_path)
         path = '' if path == '/' else path
         yield from self._walk(file.first_cluster, path)
@@ -193,26 +185,70 @@ class FileSystem:
             yield 'Everything is ok'
             return
 
-    def scan_for_intersected_chains(self):
-        graph = defaultdict(list)
-        reversed_graph = defaultdict(list)
+    def scan_and_resolve_intersected_chains(self, resolve=False):
+        used = set()
         for file in self.walk('/'):
-            chain = list(
-                self._fat_worker.get_cluster_chain(file.first_cluster))
-            for from_cluster, to_cluster in zip(chain[:-1], chain[1:]):
-                graph[from_cluster].append(to_cluster)
-                reversed_graph[to_cluster].append(from_cluster)
+            for cl in self._fat_worker.get_cluster_chain(file.first_cluster):
+                if cl in used:
+                    yield 'Some cluster-chains are intersected'
+                    if not resolve:
+                        return
 
-        res = list(self._find_clusters_before_intersections(reversed_graph))
-        if len(res):
-            return f'Some cluster-chains are intersected'
-        else:
-            return f'Everything is ok'
+                    yield 'Copying clusterchains...'
+                    self._resolve_intersected_chains()
+                    yield 'Copying ended'
+                    return
+                used.add(cl)
 
-    def _find_clusters_before_intersections(self, reversed_graph):
-        intersections = filter(
-            lambda x: len(x[1]) > 1, reversed_graph.items())
-        return (vertices for _, vertices in intersections)
+        yield f'Everything is ok'
+
+    def _resolve_intersected_chains(self):
+        used = set()
+        free_clusters = self._fat_worker.get_free_clusters()
+        for file in self.walk('/'):
+            prev_cluster = -1
+            for cl in self._fat_worker.get_cluster_chain(file.first_cluster):
+                if cl not in used:
+                    used.add(cl)
+                    prev_cluster = cl
+                    continue
+                chain_tail = list(self._fat_worker.get_cluster_chain(cl))
+                copy_clusters = []
+                for free_cluster in free_clusters:
+                    copy_clusters.append(free_cluster)
+                    if len(copy_clusters) == len(chain_tail):
+                        break
+                else:
+                    raise ValueError(
+                        "You dont have free space enough to "
+                        "copy all intersected chains"
+                    )
+
+                self._copy_clusters(chain_tail, copy_clusters)
+                if prev_cluster != -1:
+                    self._fat_worker.write_to_fat(
+                        prev_cluster,
+                        copy_clusters[0]
+                    )
+                    break
+
+    def _copy_clusters(self, from_clusters, to_clusters):
+        if len(from_clusters) > len(to_clusters):
+            raise ValueError(
+                'Not enough clusters to place the copy'
+            )
+        prev_copy_cluster = -1
+        for from_cl, to_cl in zip(from_clusters, to_clusters):
+            data = self._fat_worker.read_cluster(from_cl)
+            self._fat_worker.write_data_to_cluster(
+                to_cl,
+                data
+            )
+
+            if prev_copy_cluster != -1:
+                self._fat_worker.write_to_fat(prev_copy_cluster, to_cl)
+
+            prev_copy_cluster = to_cl
 
     def _walk(self, dir_cluster, dir_path):
         return map(lambda x: x[0],

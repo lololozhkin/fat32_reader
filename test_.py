@@ -197,14 +197,15 @@ class TestCLI(TestCase):
         self.eng_cli.export('non_existing_file.aba test_files')
         self.assertEqual(
             self.out.getvalue(),
-            "There isn't such file on image non_existing_file.aba\n"
+            "There isn't such file or directory on "
+            "image non_existing_file.aba\n"
         )
 
     def test_export_WithoutExistingDirectoryOnComputer(self):
         self.eng_cli.export('file0 non_existing_directory/file.aba')
         self.assertEqual(
             self.out.getvalue(),
-            "There isn't such file on your computer"
+            "There isn't such file or directory on your computer"
             " non_existing_directory/file.aba\n"
         )
 
@@ -304,7 +305,7 @@ class InnerTests(TestCase):
                 b'\x00Mn\x00d\x00_\x00p\x00i\x00e\x00\x00\x00c\x00e\x00'
         entry = Entry(entry)
         self.assertEqual(
-            entry.long_entry_letters.decode('utf-16'),
+            entry.long_entry_letters.decode('utf-16', errors='replace'),
             'war_and_piece'
         )
 
