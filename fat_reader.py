@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from fat_worker import FatWorker
 from file_system import FileSystem
 from CLI import CLI, split_with_quotes

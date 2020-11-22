@@ -65,6 +65,7 @@ class Parsers:
     @staticmethod
     def main_parser():
         parser = argparse.ArgumentParser(
+            prog='fat32-reader',
             description="Program to view directories and files of FAT32 image"
         )
         parser.add_argument('file',

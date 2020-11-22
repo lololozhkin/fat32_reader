@@ -14,13 +14,9 @@ class FatWorker:
         self.image = open(path, 'rb+')
 
         self.image.seek(11)
-        self.bytes_per_sector = struct.unpack("<H", self.image.read(2))[0]
-
-        self.sectors_per_cluster = struct.unpack('<B', self.image.read(1))[0]
-
-        self.reserved_sectors = struct.unpack("<H", self.image.read(2))[0]
-
-        self.num_fats = struct.unpack('<B', self.image.read(1))[0]
+        info = struct.unpack('<HBHB', self.image.read(6))
+        self.bytes_per_sector, self.sectors_per_cluster = info[:2]
+        self.reserved_sectors, self.num_fats = info[2:]
 
         self.image.seek(36)
         self.fats_z32 = struct.unpack('<I', self.image.read(4))[0]

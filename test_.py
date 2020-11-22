@@ -15,12 +15,12 @@ from file_type import FileType
 class TestCLI(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        # download_samples()
+        download_samples()
         pass
 
     @classmethod
     def tearDownClass(cls):
-        # shutil.rmtree('test_files')
+        shutil.rmtree('test_files')
         pass
 
     def setUp(self):

@@ -5,7 +5,15 @@
 
 ## Как начать работу?
 
-python3 main.py image_path \[options\]
+python3 fat_reader.py image_path \[options\]
+
+Если вы используете операционную систему linux, то можно добавить права на исполнение скрипту
+
+chmod +x fat_reader.py
+
+А потом использовать без python3 в начале
+
+./fat_reader.py image_path \[options\]
 
 ## Как запустить тесты?
 pytest-3
