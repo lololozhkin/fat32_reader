@@ -5,7 +5,7 @@
 
 ## Как начать работу?
 
-python3 fat_reader.py image_path \[options\]
+__python3 fat_reader.py image_path \[options\]__
 
 Если вы используете операционную систему linux, то можно добавить права на исполнение скрипту
 
