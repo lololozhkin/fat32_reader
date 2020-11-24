@@ -55,11 +55,11 @@ class CLI:
         return '' if self._testing else Style.RESET_ALL
 
     def ls(self, params=None):
-        parser = Parsers.ls_parser()
+        parser = Parsers.ls_parser(file=self.out)
         params = split_with_quotes(params)
         try:
             args = parser.parse_args(params)
-        except SystemExit:
+        except ValueError:
             return
 
         try:
@@ -88,23 +88,23 @@ class CLI:
             print(cur_response, file=self.out)
 
     def pwd(self, params=None):
-        parser = Parsers.pwd_parser()
+        parser = Parsers.pwd_parser(file=self.out)
         if params is not None:
             try:
                 params = split_with_quotes(params)
                 args = parser.parse_args(params)
-            except SystemExit:
+            except ValueError:
                 return
 
         current_dir = self.file_system.current_dir
         print(f'{self.dir_color}{current_dir}{self.reset_all}', file=self.out)
 
     def cd(self, params=None):
-        parser = Parsers.cd_parser()
+        parser = Parsers.cd_parser(file=self.out)
         try:
             params = split_with_quotes(params)
             args = parser.parse_args(params)
-        except SystemExit:
+        except ValueError:
             return
 
         directory = args.path
@@ -117,12 +117,12 @@ class CLI:
             )
 
     def export(self, params=None):
-        parser = Parsers.export_parser()
+        parser = Parsers.export_parser(file=self.out)
 
         try:
             params = split_with_quotes(params)
             args = parser.parse_args(params)
-        except SystemExit:
+        except ValueError:
             return
 
         try:
@@ -153,7 +153,7 @@ class CLI:
         print("Done", file=self.out)
 
     def scan(self, params=None):
-        parser = Parsers.scan_parser()
+        parser = Parsers.scan_parser(file=self.out)
 
         if params == '':
             print(parser.format_usage(), file=self.out)
@@ -162,7 +162,7 @@ class CLI:
         try:
             params = split_with_quotes(params)
             args = parser.parse_args(params)
-        except SystemExit:
+        except ValueError:
             return
 
         if args.command_name == 'lost':
@@ -190,11 +190,11 @@ class CLI:
         print(ans, file=self.out)
 
     def cat(self, params=None):
-        parser = Parsers.cat_parser()
+        parser = Parsers.cat_parser(file=self.out)
         try:
             params = split_with_quotes(params)
             args = parser.parse_args(params)
-        except SystemExit:
+        except ValueError:
             return
 
         try:
@@ -209,11 +209,11 @@ class CLI:
             return
 
     def xxd(self, params=None):
-        parser = Parsers.xxd_parser()
+        parser = Parsers.xxd_parser(file=self.out)
         try:
             params = split_with_quotes(params)
             args = parser.parse_args(params)
-        except SystemExit:
+        except ValueError:
             return
 
         try:

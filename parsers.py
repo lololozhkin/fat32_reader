@@ -1,13 +1,34 @@
 import argparse
+import sys
+
+
+class PrintingToFileArgumentParser(argparse.ArgumentParser):
+    def __init__(self, *args, **kwargs):
+        self.file = kwargs['file']
+        kwargs.pop('file')
+        super().__init__(*args, **kwargs)
+
+    def _print_message(self, message, file=None):
+        print(message, file=self.file)
+
+    def error(self, message):
+        self._print_message(f'{message}\n')
+        raise ValueError(f"Exiting because of error: {message}")
+
+    def exit(self, status=0, message=None):
+        raise ValueError(
+            f"Exiting with status: {status}, and message: {message}"
+        )
 
 
 class Parsers:
     @staticmethod
-    def ls_parser():
-        parser = argparse.ArgumentParser(
+    def ls_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
             prog='ls',
             description='list information about the files '
-                        '(the current directory by default)'
+                        '(the current directory by default)',
+            file=file
         )
         parser.add_argument('-l',
                             action='store_true',
@@ -26,19 +47,21 @@ class Parsers:
         return parser
 
     @staticmethod
-    def pwd_parser():
-        parser = argparse.ArgumentParser(
+    def pwd_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
             prog='pwd',
-            description='print working directory'
+            description='print working directory',
+            file=file
         )
 
         return parser
 
     @staticmethod
-    def cd_parser():
-        parser = argparse.ArgumentParser(
+    def cd_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
             prog='cd',
             description='changes current directory',
+            file=file
         )
 
         parser.add_argument('path', default='/', help='new path')
@@ -46,10 +69,11 @@ class Parsers:
         return parser
 
     @staticmethod
-    def export_parser():
-        parser = argparse.ArgumentParser(
+    def export_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
             prog='export',
-            description='exports file from the image to a disk'
+            description='exports file from the image to a disk',
+            file=file
         )
         parser.add_argument('img_path',
                             type=str,
@@ -74,11 +98,12 @@ class Parsers:
         return parser
 
     @staticmethod
-    def scan_parser():
-        parser = argparse.ArgumentParser(
+    def scan_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
             prog='scan',
             description='scanning disk for errors like intersected '
-                        'or lost clusterchains'
+                        'or lost clusterchains',
+            file=file
         )
 
         sub_parser = parser.add_subparsers(
@@ -87,14 +112,17 @@ class Parsers:
         )
 
         lost_parser = sub_parser.add_parser('lost',
-                                            help='scan for lost clusterchains')
+                                            help='scan for lost clusterchains',
+                                            file=file)
         lost_parser.add_argument('-d', '--directory',
                                  type=str,
                                  help='choose directory to save lost files')
 
-        intersect_parser = sub_parser.add_parser('intersected',
-                                                 help='scan for intersected '
-                                                      'clusterchains')
+        intersect_parser = sub_parser.add_parser(
+            'intersected',
+            help='scan for intersected clusterchains',
+            file=file
+        )
         intersect_parser.add_argument('-r', '--resolve',
                                       action='store_true',
                                       help='use this flag to resolve problems '
@@ -103,9 +131,11 @@ class Parsers:
         return parser
 
     @staticmethod
-    def cat_parser():
-        parser = argparse.ArgumentParser(
-            description='Shows file data in a text format to standard output'
+    def cat_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
+            prog='cat',
+            description='Shows file data in a text format to standard output',
+            file=file
         )
         parser.add_argument('path',
                             type=str,
@@ -118,9 +148,11 @@ class Parsers:
         return parser
 
     @staticmethod
-    def xxd_parser():
-        parser = argparse.ArgumentParser(
-            description='Shows file data in binary format to standard output'
+    def xxd_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
+            prog='xxd',
+            description='Shows file data in binary format to standard output',
+            file=file
         )
         parser.add_argument('path',
                             type=str,

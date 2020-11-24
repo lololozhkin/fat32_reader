@@ -15,12 +15,12 @@ from file_type import FileType
 class TestCLI(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        download_samples()
+        # download_samples()
         pass
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree('test_files')
+        # shutil.rmtree('test_files')
         pass
 
     def setUp(self):
@@ -87,8 +87,17 @@ class TestCLI(TestCase):
         self.eng_cli.scan('--help')
         self.eng_cli.cd('--help')
         self.eng_cli.export('--help')
+        self.eng_cli.cat('--help')
+        self.eng_cli.xxd('--help')
 
-        self.assertEqual(self.out.getvalue(), '')
+        output = self.out.getvalue()
+        self.assertTrue('ls' in output)
+        self.assertTrue('pwd' in output)
+        self.assertTrue('scan' in output)
+        self.assertTrue('cd' in output)
+        self.assertTrue('export' in output)
+        self.assertTrue('cat' in output)
+        self.assertTrue('xxd' in output)
 
     def test_cd_WithAbsPath(self):
         self.eng_cli.cd('/dir0/')
