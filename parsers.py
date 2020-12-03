@@ -159,3 +159,16 @@ class Parsers:
                             help='Path to file to show')
 
         return parser
+
+    @staticmethod
+    def help_parser(file=sys.stdout):
+        parser = PrintingToFileArgumentParser(
+            prog='help',
+            description='Shows help message of the command',
+            file=file
+        )
+        parser.add_argument('command',
+                            type=str,
+                            help='Command that you need to get help',
+                            nargs='?',
+                            default=None)
