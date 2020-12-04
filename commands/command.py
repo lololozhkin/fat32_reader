@@ -11,7 +11,7 @@ class Command(ABC):
     @staticmethod
     def split_with_quotes(params: str):
         params = re.findall(Command.split_regexp, params)
-        s = ''
+
         return [param.strip('\'\"') for param in params]
 
     @abstractmethod

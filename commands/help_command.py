@@ -17,10 +17,11 @@ class HelpCommand(Command):
         if args.command is None:
             for name, command in self.cli.commands.items():
                 self.cli.print(f'{name}:')
-                command.help()
+                command(self.cli).help()
+                self.cli.print('--------------------------------')
         else:
             command = args.command
             if command in self.cli.commands:
-                self.cli.commands[command].help()
+                self.cli.commands[command](self.cli).help()
             else:
                 self.cli.print_error('Command not found')

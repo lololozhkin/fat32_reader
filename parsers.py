@@ -172,3 +172,5 @@ class Parsers:
                             help='Command that you need to get help',
                             nargs='?',
                             default=None)
+
+        return parser
