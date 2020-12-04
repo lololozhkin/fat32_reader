@@ -1,5 +1,4 @@
 import sys
-import re
 
 from commands.cat_command import CatCommand
 from commands.cd_command import CdCommand
@@ -19,22 +18,22 @@ class CLI:
         self._testing = testing
         self.out = out
         self.commands = {
-            'cat': CatCommand(self),
-            'cd': CdCommand(self),
-            'export': ExportCommand(self),
-            'ls': LsCommand(self),
-            'pwd': PwdCommand(self),
-            'scan': ScanCommand(self),
-            'xxd': XxdCommand(self),
-            'help': HelpCommand(self)
+            'cat': CatCommand,
+            'cd': CdCommand,
+            'export': ExportCommand,
+            'ls': LsCommand,
+            'pwd': PwdCommand,
+            'scan': ScanCommand,
+            'xxd': XxdCommand,
+            'help': HelpCommand
         }
 
     def execute_command(self, command, params=''):
         if command not in self.commands:
             self.print_error("Command not found")
             return
-
-        self.commands[command].execute(params)
+        to_execute = self.commands[command](self)
+        to_execute.execute(params)
 
     @property
     def dir_color(self):

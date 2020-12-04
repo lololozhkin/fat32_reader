@@ -44,6 +44,6 @@ class XxdCommand(Command):
         asci_presentation = ''.join(chr(b) if 0x20 <= b <= 0x7d else '.'
                                     for b in data)
         ans = ans.ljust(49, ' ')
-        ans += ' '
+        ans += '  '
         ans += asci_presentation
         return ans

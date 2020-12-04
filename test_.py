@@ -270,7 +270,7 @@ class TestCLI(TestCase):
         ascii_presentation = 'abcdefghijklmnop'
         self.assertEqual(
             formatted_data,
-            f'{num}: {byte_presentation} {ascii_presentation}'
+            f'{num}: {byte_presentation}  {ascii_presentation}'
         )
 
     def test_xxd_FormatBlock_LessBytes(self):
@@ -281,7 +281,7 @@ class TestCLI(TestCase):
         ascii_presentation = 'abc'
         self.assertEqual(
             formatted_data,
-            f'{num}: {byte_presentation} {ascii_presentation}'
+            f'{num}: {byte_presentation}  {ascii_presentation}'
         )
 
     def test_xxd_XxdSimpleTest(self):
@@ -292,7 +292,7 @@ class TestCLI(TestCase):
         ascii_presentation = 'some_text.'
         self.assertEqual(
             out,
-            f'{num}: {bytes_presentation} {ascii_presentation}\n'
+            f'{num}: {bytes_presentation}  {ascii_presentation}\n'
         )
 
     def test_xxd_NonExistingFile(self):
