@@ -68,6 +68,9 @@ def main():
 
             try:
                 cli.execute_command(util, params)
+            except (FileNotFoundError, PermissionError) as e:
+                print(e)
+                continue
             except OSError as e:
                 print('Critical Error occurred:', e, file=sys.stderr)
                 fs.exit()

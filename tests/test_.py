@@ -16,6 +16,7 @@ from auxiliary.file_type import FileType
 class TestCLI(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        os.chdir('tests')
         download_samples()
         pass
 
@@ -50,6 +51,17 @@ class TestCLI(TestCase):
         self.eng_fs.exit()
         self.rus_fs.exit()
         self.lost_fs.exit()
+
+        initial_files = (
+            'beated_image.img',
+            'intersected_chains.img',
+            'russian_and_english_letters.img',
+            'simple_image_only_eng_letters.img'
+        )
+
+        for file_name in os.listdir('../test_files'):
+            if file_name not in initial_files:
+                os.remove(os.path.join('../test_files', file_name))
 
     def test_ls_WithoutParams(self):
         self.eng_cli.execute_command('ls', '')
@@ -190,9 +202,9 @@ class TestCLI(TestCase):
     def test_export_WithFileTarget(self):
         self.eng_cli.execute_command(
             'export',
-            'file0 test_files/file0_test.txt'
+            'file0 ../test_files/file0_test.txt'
         )
-        with open('test_files/file0_test.txt', 'r') as f:
+        with open('../test_files/file0_test.txt', 'r') as f:
             text = f.read()
 
         self.assertEqual(
@@ -200,12 +212,12 @@ class TestCLI(TestCase):
             'python is the best programming language ever\n'
         )
 
-        os.remove('test_files/file0_test.txt')
+        os.remove('../test_files/file0_test.txt')
 
     def test_export_WithDirectoryTarget(self):
-        self.eng_cli.execute_command('export', 'file0 test_files')
-        self.assertTrue(os.path.isfile('test_files/file0'))
-        with open('test_files/file0', 'r') as f:
+        self.eng_cli.execute_command('export', 'file0 ../test_files')
+        self.assertTrue(os.path.isfile('../test_files/file0'))
+        with open('../test_files/file0', 'r') as f:
             text = f.read()
 
         self.assertEqual(
@@ -213,12 +225,12 @@ class TestCLI(TestCase):
             'python is the best programming language ever\n'
         )
 
-        os.remove('test_files/file0')
+        os.remove('../test_files/file0')
 
     def test_export_WithNonExistingFile(self):
         self.eng_cli.execute_command(
             'export',
-            'non_existing_file.aba test_files'
+            'non_existing_file.aba ../test_files'
         )
         self.assertEqual(
             self.out.getvalue(),
@@ -238,11 +250,11 @@ class TestCLI(TestCase):
         )
 
     def test_export_WithDirectorySource(self):
-        self.eng_cli.execute_command('export', 'dir0 test_files')
-        self.assertTrue(os.path.isdir('test_files/dir0'))
-        self.assertTrue(os.path.isdir('test_files/dir0/dir1'))
-        self.assertTrue(os.path.isfile('test_files/dir0/some_script.py'))
-        shutil.rmtree('test_files/dir0')
+        self.eng_cli.execute_command('export', 'dir0 ../test_files')
+        self.assertTrue(os.path.isdir('../test_files/dir0'))
+        self.assertTrue(os.path.isdir('../test_files/dir0/dir1'))
+        self.assertTrue(os.path.isfile('../test_files/dir0/some_script.py'))
+        shutil.rmtree('../test_files/dir0')
 
     def test_cat_WithExistingFile(self):
         self.eng_cli.execute_command('cat', 'file0')
@@ -330,8 +342,8 @@ class TestCLI(TestCase):
         self.assertEqual(result, 'Some cluster-chains are intersected')
 
     def test_scan_ResolvingIntersections(self):
-        open('test_files/intersected_copy.img', 'wb').close()
-        with open('test_files/intersected_copy.img', 'wb') as f:
+        open('../test_files/intersected_copy.img', 'wb').close()
+        with open('../test_files/intersected_copy.img', 'wb') as f:
             with open('../test_files/intersected_chains.img', 'rb') as src:
                 blk_sz = 2**16
                 while True:
@@ -341,7 +353,7 @@ class TestCLI(TestCase):
                     f.write(data)
 
         fs = FileSystem(
-            FatWorker('test_files/intersected_copy.img')
+            FatWorker('../test_files/intersected_copy.img')
         )
         cli = CLI(fs, True, self.out)
         cli.execute_command('scan', 'intersected --resolve')
@@ -349,7 +361,7 @@ class TestCLI(TestCase):
         result = self.out.getvalue()
         self.assertTrue('Some cluster-chains are intersected' in result)
         self.assertTrue('Everything is ok' == result.split('\n')[-2])
-        os.remove('test_files/intersected_copy.img')
+        os.remove('../test_files/intersected_copy.img')
 
 
 class InnerTests(TestCase):

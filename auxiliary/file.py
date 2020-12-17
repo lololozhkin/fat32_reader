@@ -28,10 +28,12 @@ class File:
         self._path = path
 
     def __str__(self):
-        return f"{self.type.name[0].lower()} " \
-               f"{self.date} {self.time} " \
-               f"{str(self.file_size).rjust(10, ' ')}b " \
-               f"{self.name}"
+        return (
+            f"{self.type.name[0].lower()} "
+            f"{self.date} {self.time} "
+            f"{str(self.file_size).rjust(10, ' ')}b "
+            f"{self.name}"
+        )
 
     def data(self):
         yield from self._fat_worker.get_file_data(self)
@@ -61,9 +63,11 @@ class File:
         minutes = get_bit_slice_of_word(int_time, 5, 10)
         hours = get_bit_slice_of_word(int_time, 11, 15)
 
-        return f'{str(hours).rjust(2, "0")}:' \
-               f'{str(minutes).rjust(2, "0")}:' \
-               f'{str(seconds).rjust(2, "0")}'
+        return (
+            f'{str(hours).rjust(2, "0")}:'
+            f'{str(minutes).rjust(2, "0")}:'
+            f'{str(seconds).rjust(2, "0")}'
+        )
 
     @time.setter
     def time(self, value):

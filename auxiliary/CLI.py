@@ -1,14 +1,12 @@
 import sys
 
-from commands.cat_command import CatCommand
-from commands.cd_command import CdCommand
-from commands.export_command import ExportCommand
-from commands.help_command import HelpCommand
-from commands.ls_command import LsCommand
-from commands.pwd_command import PwdCommand
-from commands.scan_command import ScanCommand
-from commands.xxd_command import XxdCommand
 from auxiliary.file_system import FileSystem
+
+from commands import (
+    CatCommand, CdCommand, ExportCommand, HelpCommand,
+    LsCommand, PwdCommand, ScanCommand, XxdCommand
+)
+
 from colorama import Fore, Style
 
 

@@ -132,8 +132,6 @@ class FileSystem:
 
         except FileNotFoundError:
             raise FileNotFoundError('There is not such file on your computer')
-        except PermissionError:
-            raise PermissionError("Permission error")
 
     def get_file_data_by_path(self, file_path):
         try:

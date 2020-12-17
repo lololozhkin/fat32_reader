@@ -1,6 +1,6 @@
-/.pytest_cache
+/**/.pytest_cache/
 /test.img
-/__pycache__
+/**/__pycache__
 /.idea
 /test_files
 .coverage

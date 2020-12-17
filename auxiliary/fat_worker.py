@@ -2,6 +2,7 @@ import struct
 from .entry import Entry
 from .file import File
 from .ATTR import ATTR
+import os
 
 
 class FatWorker:

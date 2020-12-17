@@ -26,7 +26,7 @@ class Entry:
             return self.alias_name
 
     def __getitem__(self, item):
-        return self.entry.__getitem__(item)
+        return self.entry[item]
 
     @property
     def is_free(self):

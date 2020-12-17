@@ -26,10 +26,7 @@ def download_file(public_key, file_path):
 
 
 def download_samples():
-    try:
-        os.mkdir('../test_files')
-    except FileExistsError:
-        pass
+    os.makedirs('../test_files', exist_ok=True)
 
     for href, file in FILES.items():
         print(f'Downloading {file}')
