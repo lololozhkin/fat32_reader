@@ -1,7 +1,7 @@
 import struct
-from entry import Entry
-from file import File
-from ATTR import ATTR
+from .entry import Entry
+from .file import File
+from .ATTR import ATTR
 
 
 class FatWorker:

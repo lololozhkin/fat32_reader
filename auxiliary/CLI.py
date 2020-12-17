@@ -8,7 +8,7 @@ from commands.ls_command import LsCommand
 from commands.pwd_command import PwdCommand
 from commands.scan_command import ScanCommand
 from commands.xxd_command import XxdCommand
-from file_system import FileSystem
+from auxiliary.file_system import FileSystem
 from colorama import Fore, Style
 
 

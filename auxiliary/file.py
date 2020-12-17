@@ -1,5 +1,5 @@
-from file_type import FileType
-from ATTR import ATTR
+from .file_type import FileType
+from .ATTR import ATTR
 import struct
 
 

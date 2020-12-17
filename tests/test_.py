@@ -1,16 +1,16 @@
 import io
 
-from entry import Entry
-from fat_worker import FatWorker
-from CLI import CLI
+from auxiliary.entry import Entry
+from auxiliary.fat_worker import FatWorker
+from auxiliary.CLI import CLI
 from unittest import TestCase
-from file_system import FileSystem
-from download_samples import download_samples
+from auxiliary.file_system import FileSystem
+from download_scripts.download_samples import download_samples
 from commands.xxd_command import XxdCommand
 import shutil
 import os
 
-from file_type import FileType
+from auxiliary.file_type import FileType
 
 
 class TestCLI(TestCase):
@@ -21,28 +21,28 @@ class TestCLI(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree('test_files')
+        shutil.rmtree('../test_files')
         pass
 
     def setUp(self):
         self.out = io.StringIO()
         self.eng_fs = FileSystem(
-            FatWorker('test_files/simple_image_only_eng_letters.img')
+            FatWorker('../test_files/simple_image_only_eng_letters.img')
         )
         self.eng_cli = CLI(self.eng_fs, True, self.out)
 
         self.rus_fs = FileSystem(
-            FatWorker('test_files/russian_and_english_letters.img')
+            FatWorker('../test_files/russian_and_english_letters.img')
         )
         self.rus_cli = CLI(self.rus_fs, True, self.out)
 
         self.lost_fs = FileSystem(
-            FatWorker('test_files/beated_image.img')
+            FatWorker('../test_files/beated_image.img')
         )
         self.lost_cli = CLI(self.lost_fs, True, self.out)
 
         self.intersected_fs = FileSystem(
-            FatWorker('test_files/intersected_chains.img')
+            FatWorker('../test_files/intersected_chains.img')
         )
         self.intersected_cli = CLI(self.intersected_fs, True, self.out)
 
@@ -332,7 +332,7 @@ class TestCLI(TestCase):
     def test_scan_ResolvingIntersections(self):
         open('test_files/intersected_copy.img', 'wb').close()
         with open('test_files/intersected_copy.img', 'wb') as f:
-            with open('test_files/intersected_chains.img', 'rb') as src:
+            with open('../test_files/intersected_chains.img', 'rb') as src:
                 blk_sz = 2**16
                 while True:
                     data = src.read(blk_sz)

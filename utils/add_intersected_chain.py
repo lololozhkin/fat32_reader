@@ -1,5 +1,5 @@
-from fat_worker import FatWorker
-from file_system import FileSystem
+from auxiliary.fat_worker import FatWorker
+from auxiliary.file_system import FileSystem
 import random
 
 

@@ -1,5 +1,5 @@
 from .command import Command
-from parsers import Parsers
+from auxiliary.parsers import Parsers
 
 
 class ScanCommand(Command):

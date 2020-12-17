@@ -1,7 +1,7 @@
 import requests
 from urllib.parse import urlencode
 from progress.bar import IncrementalBar
-from to_download import FILES
+from download_scripts.to_download import FILES
 import os
 
 
@@ -27,13 +27,13 @@ def download_file(public_key, file_path):
 
 def download_samples():
     try:
-        os.mkdir('test_files')
+        os.mkdir('../test_files')
     except FileExistsError:
         pass
 
     for href, file in FILES.items():
         print(f'Downloading {file}')
-        download_file(href, os.path.join('test_files', file))
+        download_file(href, os.path.join('../test_files', file))
 
     print('Done')
 

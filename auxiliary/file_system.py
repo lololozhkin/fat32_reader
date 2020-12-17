@@ -2,8 +2,8 @@ import itertools
 import os
 import colorama
 from typing import Union, Iterable
-from fat_worker import FatWorker
-from file import File
+from .fat_worker import FatWorker
+from .file import File
 
 
 def normalize_path(path):
